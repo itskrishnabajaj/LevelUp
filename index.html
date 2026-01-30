@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Level Up - RPG Habit Tracker</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#050813">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Level Up">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <div class="login-logo">⚡</div>
+            <h1 class="login-title">LEVEL UP</h1>
+            <p class="login-subtitle">Start your transformation journey</p>
+
+            <div class="login-tabs">
+                <button class="login-tab active" data-tab="signup">Create Account</button>
+                <button class="login-tab" data-tab="login">Login</button>
+            </div>
+
+            <!-- Signup Form -->
+            <form class="login-form active" id="signupForm">
+                <div class="form-group">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" class="form-input" id="signupName" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="signupUsername" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="signupPassword" placeholder="Create a password" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Choose Your Avatar</label>
+                    <div class="avatar-selector" id="avatarSelector">
+                        <div class="avatar-option" data-avatar="🦸">🦸</div>
+                        <div class="avatar-option" data-avatar="🧙">🧙</div>
+                        <div class="avatar-option" data-avatar="🥷">🥷</div>
+                        <div class="avatar-option" data-avatar="🧝🏽">🧝🏽</div>
+                        <div class="avatar-option" data-avatar="👩‍💼">👩‍💼</div>
+                        <div class="avatar-option" data-avatar="🧑‍🚀">🧑‍🚀</div>
+                        <div class="avatar-option" data-avatar="🦁">🦁</div>
+                        <div class="avatar-option" data-avatar="🐉">🐉</div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-login">Create Account & Start Journey</button>
+            </form>
+
+            <!-- Login Form -->
+            <form class="login-form" id="loginForm">
+                <div class="user-list" id="userList"></div>
+                <div class="login-divider">OR</div>
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="loginUsername" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="loginPassword" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn-login">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">⚡ LEVEL UP</div>
+            
+            <div class="user-profile">
+                <div class="user-profile-avatar" id="userAvatar">🦸</div>
+                <div class="user-profile-name" id="userName">Warrior</div>
+                <div class="user-profile-title" id="userTitle">Novice Adventurer</div>
+                <div class="user-profile-class" id="userClass"></div>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+
+            <div class="level-display">
+                <div class="level-text">Current Level</div>
+                <div class="level-number" id="playerLevel">1</div>
+                <div class="xp-bar">
+                    <div class="xp-fill" id="xpBar"></div>
+                </div>
+                <div class="xp-text"><span id="currentXP">0</span> / <span id="nextLevelXP">100</span> XP</div>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-tab="dashboard">
+                            <span>🎯</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="quests">
+                            <span>✅</span>
+                            <span>Daily Quests</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="timer">
+                            <span>⏱️</span>
+                            <span>Training Timer</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="analytics">
+                            <span>📊</span>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="journal">
+                            <span>📝</span>
+                            <span>Daily Journal</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="achievements">
+                            <span>🏆</span>
+                            <span>Achievements</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="info">
+                            <span>ℹ️</span>
+                            <span>Info</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="settings">
+                            <span>⚙️</span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="mobile-header">
+                <div class="logo">⚡ LEVEL UP</div>
+                <button class="menu-toggle" id="menuToggle">☰</button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
+                <div class="low-energy-banner" id="lowEnergyBanner">
+                    <div class="low-energy-banner-title">🛡️ Low Energy Mode Active</div>
+                    <div class="low-energy-banner-text">Focus on essentials only. No judgment, just progress.</div>
+                </div>
+                
+                <div class="low-energy-simplified" id="lowEnergySimplified">
+                    <div class="low-energy-message">
+                        🌙 It's okay to have low-energy days.<br>
+                        Today, just focus on showing up. Do what you can, not what you "should."<br><br>
+                        <strong>Your only job today: survive and be kind to yourself.</strong>
+                    </div>
+                    <div class="low-energy-actions">
+                        <button class="low-energy-action-btn" data-action="quests">View Essential Quests</button>
+                        <button class="low-energy-action-btn" data-action="journal">Write Journal Entry</button>
+                        <button class="low-energy-action-btn" data-action="exit-energy">Exit Low Energy Mode</button>
+                    </div>
+                </div>
+
+                <h1 class="welcome-message" id="welcomeMessage">Welcome Back, Warrior!</h1>
+                <p class="welcome-subtitle" id="welcomeSubtitle">Ready to level up today?</p>
+                
+                <div id="identityAnchors"></div>
+                <div id="dashboardMeaningBlock"></div>
+                
+                <div class="login-streak-display" id="loginStreakDisplay">
+                    <div class="streak-info">
+                        <div class="level-text">Login Streak</div>
+                        <div class="level-number" id="loginStreakNumber">0</div>
+                    </div>
+                    <div class="streak-icon">🔥</div>
+                </div>
+                
+                <div class="consistency-stats" id="consistencyStats"></div>
+                <div id="behaviorFeedback"></div>
+                <div class="progress-insight" id="progressInsights"></div>
+                
+                <div class="quote-of-day" id="quoteOfDay">
+                    <div class="quote-text" id="quoteText"></div>
+                    <div class="quote-author" id="quoteAuthor"></div>
+                </div>
+                
+                <div class="stats-overview" id="statsOverview"></div>
+                
+                <div class="chart-container">
+                    <h2 class="section-title">Weekly Progress</h2>
+                    <canvas id="weeklyChart" class="chart-canvas"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h2 class="section-title">Stat Distribution</h2>
+                    <canvas id="statsRadar" class="chart-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Quests Tab -->
+            <div class="tab-content" id="quests">
+                <div class="low-energy-banner" id="questsLowEnergyBanner">
+                    <div class="low-energy-banner-title">🛡️ Low Energy Mode: Essential Quests Only</div>
+                    <div class="low-energy-banner-text">Only your marked essential quests are shown.</div>
+                </div>
+                
+                <div id="questMeaningBlock"></div>
+                
+                <div class="tab-header">
+                    <h1>Daily Quests 🎯</h1>
+                    <button class="btn-primary" id="addQuestBtn">+ Add Quest</button>
+                </div>
+                
+                <div class="quest-categories" id="questCategories"></div>
+            </div>
+
+            <!-- Timer Tab -->
+            <div class="tab-content" id="timer">
+                <div class="timer-section">
+                    <h1>Training Timer ⏱️</h1>
+                    <div class="timer-display">
+                        <div class="timer-clock" id="timerClock">00:00:00</div>
+                        <div class="timer-activity" id="timerActivity">Select an activity to begin</div>
+                        <div class="timer-controls">
+                            <button class="timer-btn primary" id="startBtn">Start</button>
+                            <button class="timer-btn" id="pauseBtn">Pause</button>
+                            <button class="timer-btn" id="stopBtn">Stop</button>
+                        </div>
+                    </div>
+                    <div class="activity-selector">
+                        <h3 class="section-title">Select Training Activity</h3>
+                        <div class="activity-grid" id="activityGrid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div class="tab-content" id="analytics">
+                <h1>Performance Analytics 📊</h1>
+                <div class="chart-container">
+                    <h2 class="section-title">Monthly Completion Rate</h2>
+                    <canvas id="monthlyChart" class="chart-canvas"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2 class="section-title">XP Earnings Over Time</h2>
+                    <canvas id="xpChart" class="chart-canvas"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2 class="section-title">Daily XP Breakdown</h2>
+                    <canvas id="dailyXPChart" class="chart-canvas"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2 class="section-title">Weekly Stat Growth</h2>
+                    <canvas id="statGrowthChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+            
+            <!-- Journal Tab -->
+            <div class="tab-content" id="journal">
+                <h1>Daily Journal 📝</h1>
+                
+                <div class="journal-entry">
+                    <h3 class="section-title">Today's Reflection</h3>
+                    
+                    <div class="form-group">
+                        <label class="journal-prompt">How are you feeling right now?</label>
+                        <div class="mood-selector" id="moodSelector"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="journal-prompt">What went well today? (1-2 wins, even small ones)</label>
+                        <textarea class="journal-textarea" id="journalWins" placeholder="I completed... I felt good about... I showed up for..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="journal-prompt">What challenged you? (No judgment, just facts)</label>
+                        <textarea class="journal-textarea" id="journalChallenges" placeholder="I struggled with... I avoided... I felt stuck on..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="journal-prompt">One thing for tomorrow? (Keep it simple)</label>
+                        <textarea class="journal-textarea" id="journalTomorrow" placeholder="Tomorrow I will..."></textarea>
+                    </div>
+                    
+                    <button class="btn-primary" id="saveJournalBtn">Save Journal Entry</button>
+                </div>
+                
+                <div class="journal-history">
+                    <h3 class="section-title">Past Entries</h3>
+                    <div id="journalHistoryList"></div>
+                </div>
+            </div>
+
+            <!-- Achievements Tab -->
+            <div class="tab-content" id="achievements">
+                <h1>Achievements 🏆</h1>
+                <div class="achievement-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="unlocked">Unlocked</button>
+                    <button class="filter-btn" data-filter="locked">Locked</button>
+                </div>
+                <div class="achievements-grid" id="achievementsGrid"></div>
+            </div>
+
+            <!-- Info Tab -->
+            <div class="tab-content" id="info">
+                <h1>How It Works ℹ️</h1>
+                
+                <div class="info-section">
+                    <h3 class="info-title">💎 XP System</h3>
+                    <p class="info-text">
+                        XP (Experience Points) is earned by completing quests and using the training timer. Each quest has a base XP value, but you can earn bonus XP through consistency.
+                    </p>
+                    <ul class="info-list">
+                        <li><strong>Base XP:</strong> Set per quest (typically 10-30 XP)</li>
+                        <li><strong>Daily Momentum:</strong> +50% XP for your first quest each day</li>
+                        <li><strong>Comeback Bonus:</strong> +15 XP if you missed yesterday but returned today</li>
+                        <li><strong>Perfect Essential Day:</strong> +20 XP when all essential quests are completed</li>
+                    </ul>
+                </div>
+
+                <div class="info-section">
+                    <h3 class="info-title">🔥 Streak Multipliers</h3>
+                    <p class="info-text">
+                        Maintaining daily consistency unlocks powerful XP multipliers:
+                    </p>
+                    <ul class="info-list">
+                        <li><strong>3-6 days:</strong> +10% bonus XP on all quests</li>
+                        <li><strong>7-13 days:</strong> +25% bonus XP on all quests</li>
+                        <li><strong>14-29 days:</strong> +50% bonus XP on all quests</li>
+                        <li><strong>30+ days:</strong> +75% bonus XP on all quests</li>
+                    </ul>
+                    <p class="info-note">
+                        💡 Tip: A 30-day streak can turn a 20 XP quest into 35 XP or more with all bonuses combined!
+                    </p>
+                </div>
+
+                <div class="info-section">
+                    <h3 class="info-title">⏱️ Training Timer XP</h3>
+                    <p class="info-text">
+                        The training timer rewards focused work sessions:
+                    </p>
+                    <ul class="info-list">
+                        <li><strong>Study/Learning:</strong> 5 XP every 2 minutes (2.5 XP/min) + Wisdom +1</li>
+                        <li><strong>Exercise:</strong> 3 XP every minute + Strength +1</li>
+                        <li><strong>Meditation:</strong> 3 XP every minute + Focus +1</li>
+                        <li><strong>Speech Practice:</strong> 3 XP every minute + Discipline +1</li>
+                    </ul>
+                    <p class="info-note">
+                        💡 Timer sessions compound with quest completion for massive XP gains!
+                    </p>
+                </div>
+
+                <div class="info-section">
+                    <h3 class="info-title">🛡️ Low Energy Mode</h3>
+                    <p class="info-text">
+                        Low Energy Mode simplifies your interface when you're overwhelmed:
+                    </p>
+                    <ul class="info-list">
+                        <li>Shows only essential quests (marked in quest settings)</li>
+                        <li>Hides analytics and stat tracking</li>
+                        <li>Reduces UI complexity</li>
+                        <li>Focuses on survival, not optimization</li>
+                    </ul>
+                    <p class="info-note">
+                        💡 Use this on difficult days. Showing up matters more than perfection.
+                    </p>
+                </div>
+
+                <div class="info-section">
+                    <h3 class="info-title">⚔️ Class System</h3>
+                    <p class="info-text">
+                        Once all 5 core stats (Strength, Discipline, Focus, Vitality, Wisdom) reach 100:
+                    </p>
+                    <ul class="info-list">
+                        <li>You unlock the Class Change system</li>
+                        <li>Choose a specialized class path</li>
+                        <li>Stat cap increases to 1000</li>
+                        <li>Gain unique bonuses and identity</li>
+                    </ul>
+                    <p class="info-note">
+                        💡 This represents mastery of foundational habits. Your true journey begins here.
+                    </p>
+                </div>
+
+                <div class="info-section">
+                    <h3 class="info-title">📊 Stats Explained</h3>
+                    <ul class="info-list">
+                        <li><strong>💪 Strength:</strong> Physical fitness, exercise habits</li>
+                        <li><strong>🎯 Discipline:</strong> Routine-building, consistency, willpower</li>
+                        <li><strong>🧠 Focus:</strong> Mental work, deep concentration, meditation</li>
+                        <li><strong>❤️ Vitality:</strong> Health, self-care, energy management</li>
+                        <li><strong>📚 Wisdom:</strong> Learning, reading, skill development</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings">
+                <h1>Settings ⚙️</h1>
+                
+                <div class="settings-section">
+                    <h3 class="settings-title">Your Vision & Purpose</h3>
+                    <div class="vision-container">
+                        <div class="vision-box">
+                            <div class="vision-label">✨ Your Vision</div>
+                            <div class="vision-display" id="visionDisplay">
+                                <span class="vision-empty">Set your vision...</span>
+                            </div>
+                        </div>
+                        <div class="anti-vision-box">
+                            <div class="vision-label">⚠️ Your Anti-Vision</div>
+                            <div class="vision-display" id="antiVisionDisplay">
+                                <span class="vision-empty">Set your anti-vision...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Update Vision (Who you want to become)</label>
+                        <textarea class="form-textarea" id="settingsVision" placeholder="Your ideal future self..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Update Anti-Vision (What you fear becoming)</label>
+                        <textarea class="form-textarea" id="settingsAntiVision" placeholder="What you want to avoid..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Your Story (Optional)</label>
+                        <textarea class="form-textarea" id="settingsBio" placeholder="Share your journey, your why, your background..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3 class="settings-title">Profile Settings</h3>
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-input" id="settingsName" placeholder="Your name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Avatar</label>
+                        <div class="avatar-selector" id="settingsAvatarSelector">
+                            <div class="avatar-option" data-avatar="🦸">🦸</div>
+                            <div class="avatar-option" data-avatar="🧙">🧙</div>
+                            <div class="avatar-option" data-avatar="🥷">🥷</div>
+                            <div class="avatar-option" data-avatar="🧝🏽">🧝🏽</div>
+                            <div class="avatar-option" data-avatar="👩‍💼">👩‍💼</div>
+                            <div class="avatar-option" data-avatar="🧑‍🚀">🧑‍🚀</div>
+                            <div class="avatar-option" data-avatar="🦁">🦁</div>
+                            <div class="avatar-option" data-avatar="🐉">🐉</div>
+                        </div>
+                    </div>
+                    <button class="btn-primary" id="saveSettingsBtn">Save All Changes</button>
+                </div>
+                
+                <div class="settings-section">
+                    <h3 class="settings-title">Energy Mode</h3>
+                    <p class="settings-description">
+                        Low Energy Mode simplifies your view to show only essential quests. 
+                        Use this on days when you need to focus on survival, not optimization.
+                    </p>
+                    <button class="btn-primary" id="energyToggleBtn">
+                        <span id="energyModeIcon">🔋</span>
+                        <span id="energyModeText">Activate Low Energy Mode</span>
+                    </button>
+                </div>
+                
+                <div class="settings-section danger-zone">
+                    <h3 class="settings-title">Danger Zone</h3>
+                    <button class="btn-danger" id="resetProgressBtn">Reset All Progress</button>
+                    <button class="btn-danger" id="deleteProfileBtn">Permanently Delete Profile</button>
+                </div>
+            </div>
+            
+            <!-- Identity Widget -->
+            <div class="identity-widget" id="identityWidget">
+                <div class="identity-widget-toggle" id="identityWidgetToggle">IDENTITY</div>
+                <div class="identity-widget-content">
+                    <div class="identity-widget-title">Your North Star 🧭</div>
+                    <div id="widgetIdentityContent"></div>
+                    <button class="btn-primary small" id="editIdentityBtn">Edit Identity</button>
+                </div>
+            </div>
+            
+            <!-- Identity Reminder Notification -->
+            <div class="identity-reminder-notification" id="identityReminderNotif">
+                <button class="identity-reminder-close" id="closeIdentityReminder">&times;</button>
+                <div class="identity-reminder-icon">💫</div>
+                <div class="identity-reminder-title" id="reminderTitle">Remember Why</div>
+                <div class="identity-reminder-text" id="reminderText"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Quest Modal -->
+    <div class="modal" id="addQuestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Quest</h3>
+                <button class="close-modal" id="closeAddQuestModal">&times;</button>
+            </div>
+            <form id="questForm">
+                <div class="form-group">
+                    <label class="form-label">Quest Name</label>
+                    <input type="text" class="form-input" id="questName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Icon (Emoji)</label>
+                    <input type="text" class="form-input" id="questIcon" maxlength="2" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" id="questCategory" required>
+                        <option value="health">Health & Fitness</option>
+                        <option value="study">Study & Learning</option>
+                        <option value="mindset">Mindset & Growth</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <input type="text" class="form-input" id="questCustomCategory" placeholder="Enter custom category" style="display: none; margin-top: 10px;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">XP Reward</label>
+                    <input type="number" class="form-input" id="questXP" value="10" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Target (days per month)</label>
+                    <input type="number" class="form-input" id="questTarget" value="30" min="1" max="31" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stats Affected</label>
+                    <div class="stat-checkboxes" id="statCheckboxes">
+                        <label class="stat-checkbox-label">
+                            <input type="checkbox" value="strength" data-stat="strength">
+                            💪 Strength <input type="number" min="1" max="10" value="1" class="stat-increment" disabled>
+                        </label>
+                        <label class="stat-checkbox-label">
+                            <input type="checkbox" value="discipline" data-stat="discipline">
+                            🎯 Discipline <input type="number" min="1" max="10" value="1" class="stat-increment" disabled>
+                        </label>
+                        <label class="stat-checkbox-label">
+                            <input type="checkbox" value="focus" data-stat="focus">
+                            🧠 Focus <input type="number" min="1" max="10" value="1" class="stat-increment" disabled>
+                        </label>
+                        <label class="stat-checkbox-label">
+                            <input type="checkbox" value="vitality" data-stat="vitality">
+                            ❤️ Vitality <input type="number" min="1" max="10" value="1" class="stat-increment" disabled>
+                        </label>
+                        <label class="stat-checkbox-label">
+                            <input type="checkbox" value="wisdom" data-stat="wisdom">
+                            📚 Wisdom <input type="number" min="1" max="10" value="1" class="stat-increment" disabled>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="questEssential">
+                        Mark as Essential (shown in Low Energy Mode)
+                    </label>
+                </div>
+                <button type="submit" class="btn-primary">Create Quest</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Achievement Detail Modal -->
+    <div class="modal" id="achievementModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="achievementModalTitle">Achievement</h3>
+                <button class="close-modal" id="closeAchievementModal">&times;</button>
+            </div>
+            <div id="achievementModalContent"></div>
+        </div>
+    </div>
+
+    <!-- Login Bonus Modal -->
+    <div class="login-bonus-modal" id="loginBonusModal">
+        <div class="login-bonus-icon">🎁</div>
+        <div class="login-bonus-title">DAILY BONUS!</div>
+        <div class="login-bonus-text" id="loginBonusText">+10 XP for showing up!</div>
+        <div class="login-bonus-streak" id="loginBonusStreak"></div>
+        <button class="login-bonus-close" id="closeLoginBonus">Awesome!</button>
+    </div>
+
+    <!-- Class Change Modal -->
+    <div class="modal" id="classChangeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🎉 Class Change Available!</h3>
+            </div>
+            <div class="class-change-content">
+                <p class="class-change-intro">
+                    You've mastered all foundational stats! Choose your specialized path:
+                </p>
+                <div class="class-options" id="classOptions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
