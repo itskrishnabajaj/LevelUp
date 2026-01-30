@@ -1121,6 +1121,10 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     background-clip: text;
 }
 
+.tab-content h1 {
+    margin-bottom: 25px; 
+}
+
 /* ===== JOURNAL ===== */
 .journal-entry {
     background: var(--card-bg);
@@ -1225,6 +1229,10 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     margin-top: 10px;
 }
 
+.tab-content h1 {
+    margin-bottom: 25px; 
+}
+
 /* ===== ACHIEVEMENTS ===== */
 .achievement-filters {
     display: flex;
@@ -1302,6 +1310,10 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     margin-top: 5px;
 }
 
+.tab-content h1 {
+    margin-bottom: 25px; 
+}
+
 /* ===== INFO TAB ===== */
 .info-section {
     background: var(--card-bg);
@@ -1352,6 +1364,10 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     margin-top: 15px;
     color: var(--text-secondary);
     line-height: 1.6;
+}
+
+.tab-content h1 {
+    margin-bottom: 25px; 
 }
 
 /* ===== SETTINGS ===== */
@@ -1441,6 +1457,10 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
 
 .btn-danger:active {
     transform: scale(0.98);
+}
+
+.tab-content h1 {
+    margin-bottom: 25px; 
 }
 
 /* ===== FORMS ===== */
