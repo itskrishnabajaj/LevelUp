@@ -855,7 +855,7 @@ body.low-energy-mode .chart-container {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
-    padding: 20px;
+    padding: 20px 16px; /* Changed from padding: 20px */
     transition: all 0.3s ease;
 }
 
@@ -882,6 +882,13 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     font-size: 1.05rem;
     font-weight: 600;
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.quest-title span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .quest-icon-large {
@@ -974,11 +981,13 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
 .essential-indicator {
     background: linear-gradient(135deg, #f59e0b, #fbbf24);
     color: white;
-    padding: 4px 12px;
+    padding: 4px 8px; /* Changed from padding: 4px 12px */
     border-radius: 20px;
-    font-size: 0.7rem;
+    font-size: 0.65rem; /* Changed from font-size: 0.7rem */
     font-weight: 700;
-    margin-left: 10px;
+    margin-left: 8px; /* Changed from margin-left: 10px */
+    display: inline-block;
+    white-space: nowrap;
 }
 
 /* ===== TIMER ===== */
