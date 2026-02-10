@@ -1416,14 +1416,26 @@ function selectActivity(id, name) {
     document.querySelectorAll('.activity-option').forEach(opt => {
         opt.classList.remove('selected');
     });
-    document.querySelector(`[data-activity="${id}"]`).classList.add('selected');
-    document.getElementById('timerActivity').textContent = name;
+    document.querySelector(`[data-activity="${id}"]`)?.classList.add('selected');
+    const timerActivityEl = document.getElementById('timerActivity');
+    if (timerActivityEl) timerActivityEl.textContent = name;
 }
 
 function setupButtons() {
     document.getElementById('menuToggle').addEventListener('click', () => {
         document.getElementById('sidebar').classList.toggle('mobile-visible');
         document.body.classList.toggle('sidebar-open');
+    });
+    
+    // Close sidebar when clicking on the backdrop overlay
+    document.addEventListener('click', (e) => {
+        const sidebar = document.getElementById('sidebar');
+        if (document.body.classList.contains('sidebar-open') &&
+            !e.target.closest('.sidebar') &&
+            !e.target.closest('#menuToggle')) {
+            sidebar.classList.remove('mobile-visible');
+            document.body.classList.remove('sidebar-open');
+        }
     });
     
     document.getElementById('logoutBtn').addEventListener('click', logout);
@@ -1478,6 +1490,9 @@ function startTimer() {
     document.getElementById('stopBtn').style.display = 'inline-block';
     
     const activityData = ACTIVITY_TYPES.find(a => a.id === selectedActivity);
+    if (!activityData) return;
+    
+    saveAllUsers();
     
     user.timerState.interval = setInterval(() => {
         user.timerState.elapsed++;
@@ -1494,6 +1509,7 @@ function startTimer() {
             
             updatePlayerLevel();
             updateStats();
+            saveAllUsers();
         }
     }, 1000);
 }
@@ -1578,6 +1594,7 @@ function restoreTimerState() {
         showNotification(`⏱️ Timer resumed from ${timeStr}`);
         
         const activityData = ACTIVITY_TYPES.find(a => a.id === selectedActivity);
+        if (!activityData) return;
         
         user.timerState.interval = setInterval(() => {
             user.timerState.elapsed++;
@@ -2891,7 +2908,7 @@ function showNotification(message) {
     notificationCount++;
     const notif = document.createElement('div');
     notif.className = 'app-notification';
-    notif.style.top = (20 + offset) + 'px';
+    notif.style.top = `calc(env(safe-area-inset-top, 0px) + ${20 + offset}px)`;
     notif.textContent = message;
     document.body.appendChild(notif);
     
