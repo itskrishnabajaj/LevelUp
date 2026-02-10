@@ -10,6 +10,109 @@ let selectedActivity = null;
 let selectedActivityName = '';
 let identityReminderTimeout = null;
 let achievementFilter = 'all';
+let editingQuestId = null;
+
+// ===== PIN LOCK SYSTEM =====
+function checkPinLock() {
+    const storedPin = localStorage.getItem('levelup_pin');
+    if (!storedPin) {
+        showPinScreen('setup');
+    } else {
+        showPinScreen('verify');
+    }
+}
+
+async function hashPin(pin) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(pin + 'levelup_salt');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function setupPin(pin) {
+    if (pin && /^\d{4}$/.test(pin)) {
+        const hashed = await hashPin(pin);
+        localStorage.setItem('levelup_pin', hashed);
+        hidePinScreen();
+        return true;
+    }
+    return false;
+}
+
+async function verifyPin(pin) {
+    const storedPin = localStorage.getItem('levelup_pin');
+    const hashed = await hashPin(pin);
+    if (hashed === storedPin) {
+        hidePinScreen();
+        return true;
+    }
+    return false;
+}
+
+function showPinScreen(mode) {
+    let overlay = document.getElementById('pinLockOverlay');
+    if (overlay) overlay.remove();
+
+    overlay = document.createElement('div');
+    overlay.id = 'pinLockOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg-primary,#0f0f23);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;';
+
+    const isSetup = mode === 'setup';
+    overlay.innerHTML = `
+        <div style="text-align:center;padding:20px;max-width:320px;width:100%;">
+            <div style="font-size:3rem;margin-bottom:16px;">${isSetup ? '🔐' : '🔒'}</div>
+            <h2 style="color:var(--text-primary,#fff);margin-bottom:8px;">${isSetup ? 'Set Your PIN' : 'Enter PIN'}</h2>
+            <p style="color:var(--text-secondary,#94a3b8);margin-bottom:24px;font-size:0.9rem;">
+                ${isSetup ? 'Choose a 4-digit PIN to protect your data' : 'Enter your 4-digit PIN to continue'}
+            </p>
+            <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+                aria-label="${isSetup ? 'Set a 4-digit PIN' : 'Enter your 4-digit PIN'}"
+                style="width:120px;text-align:center;font-size:2rem;letter-spacing:12px;padding:12px;border-radius:12px;border:2px solid var(--border,#333);background:var(--bg-secondary,#1a1a2e);color:var(--text-primary,#fff);outline:none;"
+                autocomplete="off">
+            <br>
+            <button id="pinSubmitBtn" style="margin-top:16px;padding:12px 32px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary,#ff6b6b),var(--purple,#a463f2));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">
+                ${isSetup ? 'Set PIN' : 'Unlock'}
+            </button>
+            <p id="pinError" style="color:#ef4444;margin-top:12px;font-size:0.85rem;min-height:20px;"></p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const pinInput = document.getElementById('pinInput');
+    const pinSubmitBtn = document.getElementById('pinSubmitBtn');
+    const pinError = document.getElementById('pinError');
+
+    pinInput.focus();
+
+    pinSubmitBtn.addEventListener('click', async () => {
+        const pin = pinInput.value;
+        if (isSetup) {
+            if (await setupPin(pin)) {
+                return;
+            }
+            pinError.textContent = 'Please enter a valid 4-digit PIN';
+        } else {
+            if (await verifyPin(pin)) {
+                return;
+            }
+            pinError.textContent = 'Incorrect PIN. Try again.';
+        }
+        pinInput.value = '';
+        pinInput.focus();
+    });
+
+    pinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') pinSubmitBtn.click();
+    });
+}
+
+function hidePinScreen() {
+    const overlay = document.getElementById('pinLockOverlay');
+    if (overlay) overlay.remove();
+}
+
+const FREQUENCY_LABELS = { daily: '📅 Daily', weekly: '📆 Weekly', biweekly: '🗓️ Biweekly', monthly: '📋 Monthly' };
 
 // ===== DEFAULT DATA =====
 const DEFAULT_QUESTS = [
@@ -21,6 +124,7 @@ const DEFAULT_QUESTS = [
         xp: 15,
         target: 30,
         essential: false,
+        frequency: 'daily',
         stats: { strength: 1 }
     },
     {
@@ -31,6 +135,7 @@ const DEFAULT_QUESTS = [
         xp: 20,
         target: 20,
         essential: false,
+        frequency: 'daily',
         stats: { strength: 2 }
     },
     {
@@ -41,6 +146,7 @@ const DEFAULT_QUESTS = [
         xp: 10,
         target: 30,
         essential: true,
+        frequency: 'daily',
         stats: { vitality: 1 }
     },
     {
@@ -51,6 +157,7 @@ const DEFAULT_QUESTS = [
         xp: 30,
         target: 30,
         essential: false,
+        frequency: 'daily',
         stats: { wisdom: 2, focus: 1 }
     },
     {
@@ -61,6 +168,7 @@ const DEFAULT_QUESTS = [
         xp: 30,
         target: 15,
         essential: false,
+        frequency: 'daily',
         stats: { wisdom: 1, focus: 2 }
     },
     {
@@ -71,6 +179,7 @@ const DEFAULT_QUESTS = [
         xp: 15,
         target: 30,
         essential: false,
+        frequency: 'daily',
         stats: { focus: 2, vitality: 1 }
     },
     {
@@ -81,6 +190,7 @@ const DEFAULT_QUESTS = [
         xp: 20,
         target: 30,
         essential: false,
+        frequency: 'daily',
         stats: { discipline: 2 }
     }
 ];
@@ -194,6 +304,7 @@ const MOODS = [
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
+    checkPinLock();
     registerServiceWorker();
     loadAllUsers();
     initializeUI();
@@ -256,6 +367,7 @@ function initializeUserData() {
         user.quests = user.quests.map(q => ({
             ...q,
             essential: q.essential !== undefined ? q.essential : false,
+            frequency: q.frequency || 'daily',
             stats: q.stats || { [q.type || 'strength']: 1 },
             category: q.category || 'custom'
         }));
@@ -506,6 +618,16 @@ function setupNavigation() {
             }
         });
     });
+
+    // Bottom navigation
+    document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            switchTab(tab);
+            document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
 }
 
 function switchTab(tabName) {
@@ -514,6 +636,11 @@ function switchTab(tabName) {
     
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(tabName).classList.add('active');
+
+    // Update bottom nav
+    document.querySelectorAll('.bottom-nav-item').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === tabName);
+    });
     
     if (tabName === 'analytics') {
         setTimeout(renderCharts, 100);
@@ -546,6 +673,7 @@ function renderAll() {
     updateConsistencyStats();
     renderBehaviorFeedback();
     renderProgressInsights();
+    renderMomentumScore();
     renderActivityGrid();
     renderMoodSelector();
     checkClassChangeEligibility();
@@ -696,6 +824,47 @@ function extractKeyPhrase(text) {
 }
 
 // ===== QUEST SYSTEM =====
+function isQuestCompletedForPeriod(questId, frequency) {
+    const user = allUsers[currentUser];
+    const now = new Date();
+    const freq = frequency || 'daily';
+
+    if (freq === 'daily') {
+        const today = now.toISOString().split('T')[0];
+        return !!user.completions[`${questId}-${today}`];
+    }
+
+    if (freq === 'weekly') {
+        const day = now.getDay();
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - day);
+        weekStart.setHours(0, 0, 0, 0);
+        for (let d = new Date(weekStart); d <= now; d.setDate(d.getDate() + 1)) {
+            if (user.completions[`${questId}-${d.toISOString().split('T')[0]}`]) return true;
+        }
+        return false;
+    }
+
+    if (freq === 'biweekly') {
+        const epoch = new Date(2024, 0, 1);
+        const daysSinceEpoch = Math.floor((now - epoch) / (1000 * 60 * 60 * 24));
+        const periodStart = new Date(epoch);
+        periodStart.setDate(epoch.getDate() + (daysSinceEpoch - (daysSinceEpoch % 14)));
+        periodStart.setHours(0, 0, 0, 0);
+        for (let d = new Date(periodStart); d <= now; d.setDate(d.getDate() + 1)) {
+            if (user.completions[`${questId}-${d.toISOString().split('T')[0]}`]) return true;
+        }
+        return false;
+    }
+
+    if (freq === 'monthly') {
+        const monthKey = now.toISOString().slice(0, 7);
+        return Object.keys(user.completions).some(k => k.startsWith(questId + '-') && k.includes(monthKey));
+    }
+
+    return false;
+}
+
 function renderQuests() {
     const user = allUsers[currentUser];
     const container = document.getElementById('questCategories');
@@ -750,9 +919,8 @@ function renderQuests() {
 
 function renderQuestCard(quest) {
     const user = allUsers[currentUser];
-    const today = new Date().toISOString().split('T')[0];
-    const key = `${quest.id}-${today}`;
-    const completed = user.completions[key] || false;
+    const frequency = quest.frequency || 'daily';
+    const completed = isQuestCompletedForPeriod(quest.id, frequency);
     
     const monthKey = new Date().toISOString().slice(0, 7);
     const monthlyCount = Object.keys(user.completions).filter(k => 
@@ -762,6 +930,12 @@ function renderQuestCard(quest) {
     const streak = calculateQuestStreak(quest.id);
     const isFirst = getTodayQuestCount() === 0;
     const { totalXP } = calculateQuestXP(quest, isFirst && !completed);
+
+    const freqBadge = `<span class="quest-freq-badge">${FREQUENCY_LABELS[frequency] || frequency}</span>`;
+
+    const completedLabel = frequency === 'daily' ? 'Completed Today' :
+        frequency === 'weekly' ? 'Completed This Week' :
+        frequency === 'biweekly' ? 'Completed This Period' : 'Completed This Month';
     
     const card = document.createElement('div');
     card.className = 'quest-card' + (quest.essential ? ' essential-quest' : '');
@@ -769,7 +943,7 @@ function renderQuestCard(quest) {
         <div class="quest-header">
             <div class="quest-title">
                 <span class="quest-icon-large">${quest.icon}</span>
-                <span>${quest.name}${quest.essential ? '<span class="essential-indicator">ESSENTIAL</span>' : ''}</span>
+                <span>${quest.name}${quest.essential ? '<span class="essential-indicator">ESSENTIAL</span>' : ''}${freqBadge}</span>
             </div>
             <div class="quest-actions">
                 <button class="btn-icon" data-action="edit" data-id="${quest.id}">✏️</button>
@@ -792,7 +966,7 @@ function renderQuestCard(quest) {
         </div>
         ${!completed ? `<div class="quest-xp-preview">💰 Completing this quest: <strong>+${totalXP} XP</strong></div>` : ''}
         <button class="check-in-btn ${completed ? 'completed' : ''}" data-quest="${quest.id}" ${completed ? 'disabled' : ''}>
-            ${completed ? '✅ Completed Today' : '⚡ Complete Quest'}
+            ${completed ? '✅ ' + completedLabel : '⚡ Complete Quest'}
         </button>
     `;
     
@@ -818,6 +992,9 @@ function completeQuest(questId) {
     const user = allUsers[currentUser];
     const quest = user.quests.find(q => q.id === questId);
     if (!quest) return;
+    
+    const frequency = quest.frequency || 'daily';
+    if (isQuestCompletedForPeriod(questId, frequency)) return;
     
     const today = new Date().toISOString().split('T')[0];
     const key = `${questId}-${today}`;
@@ -964,7 +1141,31 @@ function awardPerfectDayBonus() {
 }
 
 // ===== QUEST CREATION =====
+function setQuestModalMode(isEdit) {
+    const modalTitle = document.querySelector('#addQuestModal .modal-title');
+    const submitBtn = document.querySelector('#questForm button[type="submit"]');
+    if (modalTitle) modalTitle.textContent = isEdit ? 'Edit Quest' : 'Create New Quest';
+    if (submitBtn) submitBtn.textContent = isEdit ? 'Save Quest' : 'Create Quest';
+}
+
 function setupForms() {
+    // Inject frequency select into quest form
+    const essentialGroup = document.getElementById('questEssential')?.closest('.form-group');
+    if (essentialGroup) {
+        const freqGroup = document.createElement('div');
+        freqGroup.className = 'form-group';
+        freqGroup.innerHTML = `
+            <label class="form-label">Frequency</label>
+            <select class="form-select" id="questFrequency">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Biweekly</option>
+                <option value="monthly">Monthly</option>
+            </select>
+        `;
+        essentialGroup.parentNode.insertBefore(freqGroup, essentialGroup);
+    }
+
     const questForm = document.getElementById('questForm');
     questForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -978,6 +1179,8 @@ function setupForms() {
         const xp = parseInt(document.getElementById('questXP').value);
         const target = parseInt(document.getElementById('questTarget').value);
         const essential = document.getElementById('questEssential').checked;
+        const freqSelect = document.getElementById('questFrequency');
+        const frequency = freqSelect ? freqSelect.value : 'daily';
         
         const stats = {};
         document.querySelectorAll('.stat-checkbox-label input[type="checkbox"]:checked').forEach(cb => {
@@ -990,25 +1193,49 @@ function setupForms() {
             stats.strength = 1;
         }
         
-        const quest = {
-            id: 'q' + Date.now(),
-            name,
-            icon,
-            category,
-            xp,
-            target,
-            essential,
-            stats
-        };
-        
-        user.quests.push(quest);
-        user.questsCreated++;
-        saveAllUsers();
-        renderQuests();
-        closeModal('addQuestModal');
-        questForm.reset();
-        showNotification('✨ New Quest Created!');
-        checkAchievements();
+        if (editingQuestId) {
+            user.quests = user.quests.filter(q => q.id !== editingQuestId);
+            const quest = {
+                id: editingQuestId,
+                name,
+                icon,
+                category,
+                xp,
+                target,
+                essential,
+                frequency,
+                stats
+            };
+            user.quests.push(quest);
+            editingQuestId = null;
+            saveAllUsers();
+            renderQuests();
+            closeModal('addQuestModal');
+            questForm.reset();
+            showNotification('✅ Quest Updated!');
+        } else {
+            const quest = {
+                id: 'q' + Date.now(),
+                name,
+                icon,
+                category,
+                xp,
+                target,
+                essential,
+                frequency,
+                stats
+            };
+            user.quests.push(quest);
+            user.questsCreated++;
+            saveAllUsers();
+            renderQuests();
+            closeModal('addQuestModal');
+            questForm.reset();
+            showNotification('✨ New Quest Created!');
+            checkAchievements();
+        }
+
+        setQuestModalMode(false);
     });
     
     document.getElementById('questCategory').addEventListener('change', (e) => {
@@ -1029,12 +1256,17 @@ function editQuest(questId) {
     const quest = user.quests.find(q => q.id === questId);
     if (!quest) return;
     
+    editingQuestId = questId;
+    
     document.getElementById('questName').value = quest.name;
     document.getElementById('questIcon').value = quest.icon;
     document.getElementById('questCategory').value = quest.category;
     document.getElementById('questXP').value = quest.xp;
     document.getElementById('questTarget').value = quest.target;
     document.getElementById('questEssential').checked = quest.essential;
+    
+    const freqSelect = document.getElementById('questFrequency');
+    if (freqSelect) freqSelect.value = quest.frequency || 'daily';
     
     document.querySelectorAll('.stat-checkbox-label input[type="checkbox"]').forEach(cb => {
         const stat = cb.value;
@@ -1046,7 +1278,8 @@ function editQuest(questId) {
         }
     });
     
-    deleteQuest(questId);
+    setQuestModalMode(true);
+    
     openModal('addQuestModal');
 }
 
@@ -1098,7 +1331,12 @@ function setupButtons() {
     });
     
     document.getElementById('logoutBtn').addEventListener('click', logout);
-    document.getElementById('addQuestBtn').addEventListener('click', () => openModal('addQuestModal'));
+    document.getElementById('addQuestBtn').addEventListener('click', () => {
+        editingQuestId = null;
+        document.getElementById('questForm').reset();
+        setQuestModalMode(false);
+        openModal('addQuestModal');
+    });
     document.getElementById('saveJournalBtn').addEventListener('click', saveJournal);
     document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
     document.getElementById('energyToggleBtn').addEventListener('click', toggleEnergyMode);
@@ -1141,6 +1379,7 @@ function startTimer() {
     
     document.getElementById('startBtn').style.display = 'none';
     document.getElementById('pauseBtn').style.display = 'inline-block';
+    document.getElementById('stopBtn').style.display = 'inline-block';
     
     const activityData = ACTIVITY_TYPES.find(a => a.id === selectedActivity);
     
@@ -1173,6 +1412,7 @@ function pauseTimer() {
     document.getElementById('startBtn').style.display = 'inline-block';
     document.getElementById('startBtn').textContent = 'Resume';
     document.getElementById('pauseBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display = 'inline-block';
 }
 
 function stopTimer() {
@@ -1197,6 +1437,7 @@ function stopTimer() {
     document.getElementById('startBtn').style.display = 'inline-block';
     document.getElementById('startBtn').textContent = 'Start';
     document.getElementById('pauseBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display = 'none';
     
     saveAllUsers();
     checkAchievements();
@@ -1262,6 +1503,7 @@ function restoreTimerState() {
         
         document.getElementById('startBtn').style.display = 'none';
         document.getElementById('pauseBtn').style.display = 'inline-block';
+        document.getElementById('stopBtn').style.display = 'inline-block';
     } else if (user.timerState.elapsed > 0 && !user.timerState.running) {
         selectedActivity = user.timerState.activity;
         selectedActivityName = user.timerState.activityName;
@@ -1275,6 +1517,7 @@ function restoreTimerState() {
         document.getElementById('startBtn').style.display = 'inline-block';
         document.getElementById('startBtn').textContent = 'Resume';
         document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'inline-block';
     }
 }
 
@@ -1648,11 +1891,14 @@ function resetProgress() {
 
 function deleteProfile() {
     if (confirm('⚠️ PERMANENT DELETE: This will completely remove your profile and all data!')) {
-        if (confirm('Type your username to confirm deletion: ' + currentUser)) {
+        const typed = prompt('Type your username to confirm deletion:');
+        if (typed === currentUser) {
             delete allUsers[currentUser];
             localStorage.removeItem('allUsers');
             localStorage.removeItem('lastLoggedInUser');
             location.reload();
+        } else if (typed !== null) {
+            showNotification('⚠️ Username did not match. Deletion cancelled.');
         }
     }
 }
@@ -2082,6 +2328,89 @@ function selectClass(classId) {
     showNotification(`⚔️ Class Changed! You are now a ${classData.name}`);
 }
 
+// ===== MOMENTUM SCORE =====
+// Weights: completion (40%) is the primary driver of habit formation,
+// streak (30%) rewards consistency, journal (15%) encourages reflection,
+// timer (15%) rewards focused deep work sessions.
+function calculateMomentumScore() {
+    const user = allUsers[currentUser];
+    if (!user) return 0;
+
+    const totalQuests = user.quests.length;
+    if (totalQuests === 0) return 0;
+
+    // 7-day completion rate (40% weight - primary habit signal)
+    let completedLast7 = 0;
+    for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const key = date.toISOString().split('T')[0];
+        completedLast7 += Object.keys(user.completions).filter(k => k.includes(key)).length;
+    }
+    const maxPossible7Days = totalQuests * 7;
+    const completionRate = Math.min(completedLast7 / maxPossible7Days, 1);
+    const completionScore = completionRate * 40;
+
+    // Current streak (30% weight, capped at 30 days for full score)
+    const streak = calculateCurrentStreak();
+    const streakScore = Math.min(streak / 30, 1) * 30;
+
+    // Journal entries this week (15% weight)
+    const now = new Date();
+    const weekAgo = new Date(now);
+    weekAgo.setDate(now.getDate() - 7);
+    const journalThisWeek = (user.journal || []).filter(j => new Date(j.date) >= weekAgo).length;
+    const journalScore = Math.min(journalThisWeek / 7, 1) * 15;
+
+    // Timer usage this week (15% weight, full score at 10 hours)
+    const TIMER_HOURS_FOR_FULL_SCORE = 10;
+    const timerTotal = Object.values(user.timerStats || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+    const timerHours = timerTotal / 3600;
+    const timerScore = Math.min(timerHours / TIMER_HOURS_FOR_FULL_SCORE, 1) * 15;
+
+    return Math.round(completionScore + streakScore + journalScore + timerScore);
+}
+
+function renderMomentumScore() {
+    const user = allUsers[currentUser];
+    if (!user) return;
+
+    let block = document.getElementById('momentumScoreBlock');
+    if (!block) {
+        block = document.createElement('div');
+        block.id = 'momentumScoreBlock';
+        const progressInsights = document.getElementById('progressInsights');
+        if (progressInsights && progressInsights.parentNode) {
+            progressInsights.parentNode.insertBefore(block, progressInsights.nextSibling);
+        } else {
+            const dashboard = document.getElementById('dashboard');
+            if (dashboard) dashboard.appendChild(block);
+        }
+    }
+
+    const score = calculateMomentumScore();
+    const thresholds = [
+        { min: 80, color: 'var(--green, #10b981)', label: '🔥 On Fire!' },
+        { min: 60, color: 'var(--green, #10b981)', label: '💪 Strong' },
+        { min: 40, color: 'var(--accent, #f59e0b)', label: '📈 Building' },
+        { min: 20, color: 'var(--text-secondary, #94a3b8)', label: '🌱 Starting' },
+        { min: 0, color: 'var(--text-secondary, #94a3b8)', label: '😴 Dormant' }
+    ];
+    const tier = thresholds.find(t => score >= t.min);
+    const color = tier.color;
+    const label = tier.label;
+
+    block.className = 'momentum-score-block';
+    block.innerHTML = `
+        <div class="momentum-label">⚡ Momentum Score</div>
+        <div class="momentum-value" style="color:${color}">${score}</div>
+        <div class="momentum-tier">${label}</div>
+        <div class="momentum-bar">
+            <div class="momentum-bar-fill" style="width:${score}%;background:${color}"></div>
+        </div>
+    `;
+}
+
 // ===== CHARTS SYSTEM =====
 function renderCharts() {
     renderWeeklyChart();
@@ -2247,8 +2576,9 @@ function renderMonthlyChart() {
     const monthlyData = [];
     const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
+    const currentYear = new Date().getFullYear();
     for (let month = 0; month < 12; month++) {
-        const monthKey = new Date(2026, month).toISOString().slice(0, 7);
+        const monthKey = new Date(currentYear, month).toISOString().slice(0, 7);
         const count = Object.keys(user.completions).filter(k => k.includes(monthKey)).length;
         monthlyData.push(count);
     }
@@ -2426,7 +2756,13 @@ function displayQuote(quote) {
 function setupModals() {
     document.querySelectorAll('.close-modal').forEach(btn => {
         btn.addEventListener('click', () => {
-            btn.closest('.modal').classList.remove('active');
+            const modal = btn.closest('.modal');
+            modal.classList.remove('active');
+            if (modal.id === 'addQuestModal') {
+                editingQuestId = null;
+                setQuestModalMode(false);
+                document.getElementById('questForm').reset();
+            }
         });
     });
     
@@ -2434,6 +2770,11 @@ function setupModals() {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.classList.remove('active');
+                if (modal.id === 'addQuestModal') {
+                    editingQuestId = null;
+                    setQuestModalMode(false);
+                    document.getElementById('questForm').reset();
+                }
             }
         });
     });
@@ -2448,43 +2789,24 @@ function closeModal(modalId) {
 }
 
 // ===== NOTIFICATIONS =====
+let notificationCount = 0;
 function showNotification(message) {
+    const offset = notificationCount * 60;
+    notificationCount++;
     const notif = document.createElement('div');
-    notif.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, var(--primary), var(--purple));
-        color: white;
-        padding: 16px 24px;
-        border-radius: 12px;
-        font-weight: 600;
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        max-width: calc(100vw - 40px);
-    `;
+    notif.className = 'app-notification';
+    notif.style.top = (20 + offset) + 'px';
     notif.textContent = message;
     document.body.appendChild(notif);
     
     setTimeout(() => {
-        notif.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => notif.remove(), 300);
+        notif.classList.add('exit');
+        setTimeout(() => {
+            notif.remove();
+            notificationCount = Math.max(0, notificationCount - 1);
+        }, 300);
     }, 3000);
 }
-
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
 
 console.log('%c⚡ Level Up v1.0.0', 'font-size: 20px; font-weight: bold; color: #ff6b6b;');
 console.log('%cDeveloped by KrisVeltrix', 'font-size: 12px; color: #a463f2;');
