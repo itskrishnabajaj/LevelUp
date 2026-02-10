@@ -22,18 +22,28 @@ function checkPinLock() {
     }
 }
 
-function setupPin(pin) {
-    if (pin && pin.length === 4 && /^\d{4}$/.test(pin)) {
-        localStorage.setItem('levelup_pin', pin);
+async function hashPin(pin) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(pin + 'levelup_salt');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function setupPin(pin) {
+    if (pin && /^\d{4}$/.test(pin)) {
+        const hashed = await hashPin(pin);
+        localStorage.setItem('levelup_pin', hashed);
         hidePinScreen();
         return true;
     }
     return false;
 }
 
-function verifyPin(pin) {
+async function verifyPin(pin) {
     const storedPin = localStorage.getItem('levelup_pin');
-    if (pin === storedPin) {
+    const hashed = await hashPin(pin);
+    if (hashed === storedPin) {
         hidePinScreen();
         return true;
     }
@@ -57,6 +67,7 @@ function showPinScreen(mode) {
                 ${isSetup ? 'Choose a 4-digit PIN to protect your data' : 'Enter your 4-digit PIN to continue'}
             </p>
             <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+                aria-label="${isSetup ? 'Set a 4-digit PIN' : 'Enter your 4-digit PIN'}"
                 style="width:120px;text-align:center;font-size:2rem;letter-spacing:12px;padding:12px;border-radius:12px;border:2px solid var(--border,#333);background:var(--bg-secondary,#1a1a2e);color:var(--text-primary,#fff);outline:none;"
                 autocomplete="off">
             <br>
@@ -74,15 +85,15 @@ function showPinScreen(mode) {
 
     pinInput.focus();
 
-    pinSubmitBtn.addEventListener('click', () => {
+    pinSubmitBtn.addEventListener('click', async () => {
         const pin = pinInput.value;
         if (isSetup) {
-            if (setupPin(pin)) {
+            if (await setupPin(pin)) {
                 return;
             }
             pinError.textContent = 'Please enter a valid 4-digit PIN';
         } else {
-            if (verifyPin(pin)) {
+            if (await verifyPin(pin)) {
                 return;
             }
             pinError.textContent = 'Incorrect PIN. Try again.';
@@ -100,6 +111,8 @@ function hidePinScreen() {
     const overlay = document.getElementById('pinLockOverlay');
     if (overlay) overlay.remove();
 }
+
+const FREQUENCY_LABELS = { daily: '📅 Daily', weekly: '📆 Weekly', biweekly: '🗓️ Biweekly', monthly: '📋 Monthly' };
 
 // ===== DEFAULT DATA =====
 const DEFAULT_QUESTS = [
@@ -818,12 +831,12 @@ function isQuestCompletedForPeriod(questId, frequency) {
     }
 
     if (freq === 'biweekly') {
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-        const dayOfYear = Math.floor((now - startOfYear) / (1000 * 60 * 60 * 24));
-        const biweekStart = new Date(now);
-        biweekStart.setDate(now.getDate() - (dayOfYear % 14));
-        biweekStart.setHours(0, 0, 0, 0);
-        for (let d = new Date(biweekStart); d <= now; d.setDate(d.getDate() + 1)) {
+        const epoch = new Date(2024, 0, 1);
+        const daysSinceEpoch = Math.floor((now - epoch) / (1000 * 60 * 60 * 24));
+        const periodStart = new Date(epoch);
+        periodStart.setDate(epoch.getDate() + (daysSinceEpoch - (daysSinceEpoch % 14)));
+        periodStart.setHours(0, 0, 0, 0);
+        for (let d = new Date(periodStart); d <= now; d.setDate(d.getDate() + 1)) {
             if (user.completions[`${questId}-${d.toISOString().split('T')[0]}`]) return true;
         }
         return false;
@@ -903,8 +916,7 @@ function renderQuestCard(quest) {
     const isFirst = getTodayQuestCount() === 0;
     const { totalXP } = calculateQuestXP(quest, isFirst && !completed);
 
-    const freqLabels = { daily: '📅 Daily', weekly: '📆 Weekly', biweekly: '🗓️ Biweekly', monthly: '📋 Monthly' };
-    const freqBadge = `<span style="font-size:0.7rem;background:rgba(164,99,242,0.2);color:var(--purple,#a463f2);padding:2px 8px;border-radius:8px;margin-left:8px;">${freqLabels[frequency] || frequency}</span>`;
+    const freqBadge = `<span style="font-size:0.7rem;background:rgba(164,99,242,0.2);color:var(--purple,#a463f2);padding:2px 8px;border-radius:8px;margin-left:8px;">${FREQUENCY_LABELS[frequency] || frequency}</span>`;
 
     const completedLabel = frequency === 'daily' ? 'Completed Today' :
         frequency === 'weekly' ? 'Completed This Week' :
@@ -2301,8 +2313,10 @@ function calculateMomentumScore() {
     const user = allUsers[currentUser];
     if (!user) return 0;
 
+    const totalQuests = user.quests.length;
+    if (totalQuests === 0) return 0;
+
     // 7-day completion rate (40% weight)
-    const totalQuests = user.quests.length || 1;
     let completedLast7 = 0;
     for (let i = 0; i < 7; i++) {
         const date = new Date();
@@ -2325,10 +2339,11 @@ function calculateMomentumScore() {
     const journalThisWeek = (user.journal || []).filter(j => new Date(j.date) >= weekAgo).length;
     const journalScore = Math.min(journalThisWeek / 7, 1) * 15;
 
-    // Timer usage this week (15% weight)
-    const timerTotal = Object.values(user.timerStats || {}).reduce((a, b) => a + b, 0);
+    // Timer usage this week (15% weight, full score at 10 hours)
+    const TIMER_HOURS_FOR_FULL_SCORE = 10;
+    const timerTotal = Object.values(user.timerStats || {}).reduce((a, b) => a + (Number(b) || 0), 0);
     const timerHours = timerTotal / 3600;
-    const timerScore = Math.min(timerHours / 10, 1) * 15;
+    const timerScore = Math.min(timerHours / TIMER_HOURS_FOR_FULL_SCORE, 1) * 15;
 
     return Math.round(completionScore + streakScore + journalScore + timerScore);
 }
@@ -2351,8 +2366,16 @@ function renderMomentumScore() {
     }
 
     const score = calculateMomentumScore();
-    const color = score >= 70 ? 'var(--green, #10b981)' : score >= 40 ? 'var(--accent, #f59e0b)' : 'var(--text-secondary, #94a3b8)';
-    const label = score >= 80 ? '🔥 On Fire!' : score >= 60 ? '💪 Strong' : score >= 40 ? '📈 Building' : score >= 20 ? '🌱 Starting' : '😴 Dormant';
+    const thresholds = [
+        { min: 80, color: 'var(--green, #10b981)', label: '🔥 On Fire!' },
+        { min: 60, color: 'var(--green, #10b981)', label: '💪 Strong' },
+        { min: 40, color: 'var(--accent, #f59e0b)', label: '📈 Building' },
+        { min: 20, color: 'var(--text-secondary, #94a3b8)', label: '🌱 Starting' },
+        { min: 0, color: 'var(--text-secondary, #94a3b8)', label: '😴 Dormant' }
+    ];
+    const tier = thresholds.find(t => score >= t.min);
+    const color = tier.color;
+    const label = tier.label;
 
     block.style.cssText = 'background:var(--bg-secondary,#1a1a2e);border-radius:16px;padding:20px;margin-top:16px;text-align:center;border:1px solid var(--border,#333);';
     block.innerHTML = `
