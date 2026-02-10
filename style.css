@@ -607,7 +607,9 @@ body.low-energy-mode .low-energy-simplified {
 }
 
 body.low-energy-mode .stats-overview,
-body.low-energy-mode .chart-container {
+body.low-energy-mode .chart-container,
+body.low-energy-mode .momentum-score-block,
+body.low-energy-mode .progress-insight {
     display: none;
 }
 
@@ -2149,6 +2151,50 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
 
 #pinSubmitBtn:active {
     transform: scale(0.95) !important;
+}
+
+/* ===== MOMENTUM SCORE ===== */
+.momentum-score-block {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.momentum-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.momentum-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.momentum-tier {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.momentum-bar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.momentum-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ===== PREMIUM ANIMATIONS ===== */

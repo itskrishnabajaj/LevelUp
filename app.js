@@ -2392,13 +2392,13 @@ function renderMomentumScore() {
     const color = tier.color;
     const label = tier.label;
 
-    block.style.cssText = 'background:var(--bg-secondary,#1a1a2e);border-radius:16px;padding:20px;margin-top:16px;text-align:center;border:1px solid var(--border,#333);';
+    block.className = 'momentum-score-block';
     block.innerHTML = `
-        <div style="font-size:0.85rem;color:var(--text-secondary,#94a3b8);margin-bottom:8px;">⚡ Momentum Score</div>
-        <div style="font-size:2.5rem;font-weight:700;color:${color};margin-bottom:4px;">${score}</div>
-        <div style="font-size:0.9rem;color:var(--text-secondary,#94a3b8);margin-bottom:12px;">${label}</div>
-        <div style="background:rgba(255,255,255,0.1);border-radius:8px;height:8px;overflow:hidden;">
-            <div style="height:100%;width:${score}%;background:${color};border-radius:8px;transition:width 0.5s ease;"></div>
+        <div class="momentum-label">⚡ Momentum Score</div>
+        <div class="momentum-value" style="color:${color}">${score}</div>
+        <div class="momentum-tier">${label}</div>
+        <div class="momentum-bar">
+            <div class="momentum-bar-fill" style="width:${score}%;background:${color}"></div>
         </div>
     `;
 }
