@@ -931,7 +931,7 @@ function renderQuestCard(quest) {
     const isFirst = getTodayQuestCount() === 0;
     const { totalXP } = calculateQuestXP(quest, isFirst && !completed);
 
-    const freqBadge = `<span style="font-size:0.7rem;background:rgba(164,99,242,0.2);color:var(--purple,#a463f2);padding:2px 8px;border-radius:8px;margin-left:8px;">${FREQUENCY_LABELS[frequency] || frequency}</span>`;
+    const freqBadge = `<span class="quest-freq-badge">${FREQUENCY_LABELS[frequency] || frequency}</span>`;
 
     const completedLabel = frequency === 'daily' ? 'Completed Today' :
         frequency === 'weekly' ? 'Completed This Week' :
@@ -1379,6 +1379,7 @@ function startTimer() {
     
     document.getElementById('startBtn').style.display = 'none';
     document.getElementById('pauseBtn').style.display = 'inline-block';
+    document.getElementById('stopBtn').style.display = 'inline-block';
     
     const activityData = ACTIVITY_TYPES.find(a => a.id === selectedActivity);
     
@@ -1411,6 +1412,7 @@ function pauseTimer() {
     document.getElementById('startBtn').style.display = 'inline-block';
     document.getElementById('startBtn').textContent = 'Resume';
     document.getElementById('pauseBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display = 'inline-block';
 }
 
 function stopTimer() {
@@ -1435,6 +1437,7 @@ function stopTimer() {
     document.getElementById('startBtn').style.display = 'inline-block';
     document.getElementById('startBtn').textContent = 'Start';
     document.getElementById('pauseBtn').style.display = 'none';
+    document.getElementById('stopBtn').style.display = 'none';
     
     saveAllUsers();
     checkAchievements();
@@ -1500,6 +1503,7 @@ function restoreTimerState() {
         
         document.getElementById('startBtn').style.display = 'none';
         document.getElementById('pauseBtn').style.display = 'inline-block';
+        document.getElementById('stopBtn').style.display = 'inline-block';
     } else if (user.timerState.elapsed > 0 && !user.timerState.running) {
         selectedActivity = user.timerState.activity;
         selectedActivityName = user.timerState.activityName;
@@ -1513,6 +1517,7 @@ function restoreTimerState() {
         document.getElementById('startBtn').style.display = 'inline-block';
         document.getElementById('startBtn').textContent = 'Resume';
         document.getElementById('pauseBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'inline-block';
     }
 }
 
@@ -1886,11 +1891,14 @@ function resetProgress() {
 
 function deleteProfile() {
     if (confirm('⚠️ PERMANENT DELETE: This will completely remove your profile and all data!')) {
-        if (confirm('Type your username to confirm deletion: ' + currentUser)) {
+        const typed = prompt('Type your username to confirm deletion:');
+        if (typed === currentUser) {
             delete allUsers[currentUser];
             localStorage.removeItem('allUsers');
             localStorage.removeItem('lastLoggedInUser');
             location.reload();
+        } else if (typed !== null) {
+            showNotification('⚠️ Username did not match. Deletion cancelled.');
         }
     }
 }
@@ -2568,8 +2576,9 @@ function renderMonthlyChart() {
     const monthlyData = [];
     const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
+    const currentYear = new Date().getFullYear();
     for (let month = 0; month < 12; month++) {
-        const monthKey = new Date(2026, month).toISOString().slice(0, 7);
+        const monthKey = new Date(currentYear, month).toISOString().slice(0, 7);
         const count = Object.keys(user.completions).filter(k => k.includes(monthKey)).length;
         monthlyData.push(count);
     }
@@ -2780,43 +2789,24 @@ function closeModal(modalId) {
 }
 
 // ===== NOTIFICATIONS =====
+let notificationCount = 0;
 function showNotification(message) {
+    const offset = notificationCount * 60;
+    notificationCount++;
     const notif = document.createElement('div');
-    notif.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, var(--primary), var(--purple));
-        color: white;
-        padding: 16px 24px;
-        border-radius: 12px;
-        font-weight: 600;
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        max-width: calc(100vw - 40px);
-    `;
+    notif.className = 'app-notification';
+    notif.style.top = (20 + offset) + 'px';
     notif.textContent = message;
     document.body.appendChild(notif);
     
     setTimeout(() => {
-        notif.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => notif.remove(), 300);
+        notif.classList.add('exit');
+        setTimeout(() => {
+            notif.remove();
+            notificationCount = Math.max(0, notificationCount - 1);
+        }, 300);
     }, 3000);
 }
-
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
 
 console.log('%c⚡ Level Up v1.0.0', 'font-size: 20px; font-weight: bold; color: #ff6b6b;');
 console.log('%cDeveloped by KrisVeltrix', 'font-size: 12px; color: #a463f2;');
