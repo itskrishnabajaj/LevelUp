@@ -1141,6 +1141,13 @@ function awardPerfectDayBonus() {
 }
 
 // ===== QUEST CREATION =====
+function setQuestModalMode(isEdit) {
+    const modalTitle = document.querySelector('#addQuestModal .modal-title');
+    const submitBtn = document.querySelector('#questForm button[type="submit"]');
+    if (modalTitle) modalTitle.textContent = isEdit ? 'Edit Quest' : 'Create New Quest';
+    if (submitBtn) submitBtn.textContent = isEdit ? 'Save Quest' : 'Create Quest';
+}
+
 function setupForms() {
     // Inject frequency select into quest form
     const essentialGroup = document.getElementById('questEssential')?.closest('.form-group');
@@ -1228,11 +1235,7 @@ function setupForms() {
             checkAchievements();
         }
 
-        // Reset modal title/button
-        const modalTitle = document.querySelector('#addQuestModal .modal-title');
-        if (modalTitle) modalTitle.textContent = 'Create New Quest';
-        const submitBtn = document.querySelector('#questForm button[type="submit"]');
-        if (submitBtn) submitBtn.textContent = 'Create Quest';
+        setQuestModalMode(false);
     });
     
     document.getElementById('questCategory').addEventListener('change', (e) => {
@@ -1275,10 +1278,7 @@ function editQuest(questId) {
         }
     });
     
-    const modalTitle = document.querySelector('#addQuestModal .modal-title');
-    if (modalTitle) modalTitle.textContent = 'Edit Quest';
-    const submitBtn = document.querySelector('#questForm button[type="submit"]');
-    if (submitBtn) submitBtn.textContent = 'Save Quest';
+    setQuestModalMode(true);
     
     openModal('addQuestModal');
 }
@@ -1334,10 +1334,7 @@ function setupButtons() {
     document.getElementById('addQuestBtn').addEventListener('click', () => {
         editingQuestId = null;
         document.getElementById('questForm').reset();
-        const modalTitle = document.querySelector('#addQuestModal .modal-title');
-        if (modalTitle) modalTitle.textContent = 'Create New Quest';
-        const submitBtn = document.querySelector('#questForm button[type="submit"]');
-        if (submitBtn) submitBtn.textContent = 'Create Quest';
+        setQuestModalMode(false);
         openModal('addQuestModal');
     });
     document.getElementById('saveJournalBtn').addEventListener('click', saveJournal);
@@ -2324,6 +2321,9 @@ function selectClass(classId) {
 }
 
 // ===== MOMENTUM SCORE =====
+// Weights: completion (40%) is the primary driver of habit formation,
+// streak (30%) rewards consistency, journal (15%) encourages reflection,
+// timer (15%) rewards focused deep work sessions.
 function calculateMomentumScore() {
     const user = allUsers[currentUser];
     if (!user) return 0;
@@ -2331,7 +2331,7 @@ function calculateMomentumScore() {
     const totalQuests = user.quests.length;
     if (totalQuests === 0) return 0;
 
-    // 7-day completion rate (40% weight)
+    // 7-day completion rate (40% weight - primary habit signal)
     let completedLast7 = 0;
     for (let i = 0; i < 7; i++) {
         const date = new Date();
@@ -2751,10 +2751,7 @@ function setupModals() {
             modal.classList.remove('active');
             if (modal.id === 'addQuestModal') {
                 editingQuestId = null;
-                const modalTitle = document.querySelector('#addQuestModal .modal-title');
-                if (modalTitle) modalTitle.textContent = 'Create New Quest';
-                const submitBtn = document.querySelector('#questForm button[type="submit"]');
-                if (submitBtn) submitBtn.textContent = 'Create Quest';
+                setQuestModalMode(false);
                 document.getElementById('questForm').reset();
             }
         });
@@ -2766,10 +2763,7 @@ function setupModals() {
                 modal.classList.remove('active');
                 if (modal.id === 'addQuestModal') {
                     editingQuestId = null;
-                    const modalTitle = document.querySelector('#addQuestModal .modal-title');
-                    if (modalTitle) modalTitle.textContent = 'Create New Quest';
-                    const submitBtn = document.querySelector('#questForm button[type="submit"]');
-                    if (submitBtn) submitBtn.textContent = 'Create Quest';
+                    setQuestModalMode(false);
                     document.getElementById('questForm').reset();
                 }
             }
