@@ -68,7 +68,7 @@ function showPinScreen(mode) {
             </p>
             <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*"
                 aria-label="${isSetup ? 'Set a 4-digit PIN' : 'Enter your 4-digit PIN'}"
-                style="width:120px;text-align:center;font-size:2rem;letter-spacing:12px;padding:12px;border-radius:12px;border:2px solid var(--border,#333);background:var(--bg-secondary,#1a1a2e);color:var(--text-primary,#fff);outline:none;"
+                style="width:200px;text-align:center;font-size:2rem;letter-spacing:16px;padding:14px 20px;border-radius:12px;border:2px solid var(--border,#333);background:var(--bg-secondary,#1a1a2e);color:var(--text-primary,#fff);outline:none;"
                 autocomplete="off">
             <br>
             <button id="pinSubmitBtn" style="margin-top:16px;padding:12px 32px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary,#ff6b6b),var(--purple,#a463f2));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">
@@ -112,7 +112,8 @@ function hidePinScreen() {
     if (overlay) overlay.remove();
 }
 
-const FREQUENCY_LABELS = { daily: '📅 Daily', weekly: '📆 Weekly', biweekly: '🗓️ Biweekly', monthly: '📋 Monthly' };
+const FREQUENCY_LABELS = { daily: '📅 Daily', weekly: '📆 Weekly', biweekly: '🗓️ Biweekly', monthly: '📋 Monthly', custom: '🔧 Custom' };
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 // ===== DEFAULT DATA =====
 const DEFAULT_QUESTS = [
@@ -619,15 +620,6 @@ function setupNavigation() {
         });
     });
 
-    // Bottom navigation
-    document.querySelectorAll('.bottom-nav-item').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.tab;
-            switchTab(tab);
-            document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        });
-    });
 }
 
 function switchTab(tabName) {
@@ -636,11 +628,6 @@ function switchTab(tabName) {
     
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(tabName).classList.add('active');
-
-    // Update bottom nav
-    document.querySelectorAll('.bottom-nav-item').forEach(b => {
-        b.classList.toggle('active', b.dataset.tab === tabName);
-    });
     
     if (tabName === 'analytics') {
         setTimeout(renderCharts, 100);
@@ -824,10 +811,17 @@ function extractKeyPhrase(text) {
 }
 
 // ===== QUEST SYSTEM =====
-function isQuestCompletedForPeriod(questId, frequency) {
+function isQuestCompletedForPeriod(questId, frequency, quest) {
     const user = allUsers[currentUser];
     const now = new Date();
     const freq = frequency || 'daily';
+
+    if (freq === 'custom' && quest && quest.customDays) {
+        const todayDay = now.getDay();
+        if (!quest.customDays.includes(todayDay)) return true; // not scheduled today, treat as "done"
+        const today = now.toISOString().split('T')[0];
+        return !!user.completions[`${questId}-${today}`];
+    }
 
     if (freq === 'daily') {
         const today = now.toISOString().split('T')[0];
@@ -885,18 +879,30 @@ function renderQuests() {
         mindset: '🧘 Mindset & Growth',
         custom: '⭐ Custom Quests'
     };
+
+    // Use saved category order if available
+    const savedOrder = user.categoryOrder || [];
+    const catKeys = Object.keys(categories);
+    const orderedKeys = savedOrder.filter(k => catKeys.includes(k));
+    catKeys.forEach(k => { if (!orderedKeys.includes(k)) orderedKeys.push(k); });
     
-    Object.keys(categories).forEach(catKey => {
+    orderedKeys.forEach((catKey, idx) => {
         const quests = categories[catKey];
+        if (!quests) return;
         
         const catDiv = document.createElement('div');
         catDiv.className = 'quest-category';
+        catDiv.dataset.category = catKey;
         
         const header = document.createElement('div');
         header.className = 'category-header';
         header.innerHTML = `
             <div class="category-title">${categoryNames[catKey] || catKey}</div>
-            <div class="category-toggle">▼</div>
+            <div class="category-controls">
+                <button class="cat-move-btn" data-dir="up" title="Move Up" ${idx === 0 ? 'disabled' : ''}>▲</button>
+                <button class="cat-move-btn" data-dir="down" title="Move Down" ${idx === orderedKeys.length - 1 ? 'disabled' : ''}>▼</button>
+                <span class="category-toggle">▼</span>
+            </div>
         `;
         
         const questsDiv = document.createElement('div');
@@ -907,8 +913,16 @@ function renderQuests() {
             questsDiv.appendChild(card);
         });
         
-        header.addEventListener('click', () => {
+        header.querySelector('.category-toggle').addEventListener('click', (e) => {
+            e.stopPropagation();
             header.classList.toggle('collapsed');
+        });
+
+        header.querySelectorAll('.cat-move-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moveCategoryOrder(catKey, btn.dataset.dir);
+            });
         });
         
         catDiv.appendChild(header);
@@ -917,10 +931,38 @@ function renderQuests() {
     });
 }
 
+function moveCategoryOrder(catKey, direction) {
+    const user = allUsers[currentUser];
+    const categories = {};
+    user.quests.forEach(quest => {
+        const cat = quest.category || 'custom';
+        if (!categories[cat]) categories[cat] = [];
+        categories[cat].push(quest);
+    });
+    const catKeys = Object.keys(categories);
+    const savedOrder = user.categoryOrder || [];
+    const orderedKeys = savedOrder.filter(k => catKeys.includes(k));
+    catKeys.forEach(k => { if (!orderedKeys.includes(k)) orderedKeys.push(k); });
+
+    const idx = orderedKeys.indexOf(catKey);
+    if (idx === -1) return;
+    if (direction === 'up' && idx > 0) {
+        [orderedKeys[idx - 1], orderedKeys[idx]] = [orderedKeys[idx], orderedKeys[idx - 1]];
+    } else if (direction === 'down' && idx < orderedKeys.length - 1) {
+        [orderedKeys[idx + 1], orderedKeys[idx]] = [orderedKeys[idx], orderedKeys[idx + 1]];
+    }
+    user.categoryOrder = orderedKeys;
+    saveAllUsers();
+    renderQuests();
+}
+
 function renderQuestCard(quest) {
     const user = allUsers[currentUser];
     const frequency = quest.frequency || 'daily';
-    const completed = isQuestCompletedForPeriod(quest.id, frequency);
+    const completed = isQuestCompletedForPeriod(quest.id, frequency, quest);
+    
+    // For custom frequency, check if quest is scheduled today
+    const isScheduledToday = frequency !== 'custom' || !quest.customDays || quest.customDays.includes(new Date().getDay());
     
     const monthKey = new Date().toISOString().slice(0, 7);
     const monthlyCount = Object.keys(user.completions).filter(k => 
@@ -931,46 +973,51 @@ function renderQuestCard(quest) {
     const isFirst = getTodayQuestCount() === 0;
     const { totalXP } = calculateQuestXP(quest, isFirst && !completed);
 
-    const freqBadge = `<span class="quest-freq-badge">${FREQUENCY_LABELS[frequency] || frequency}</span>`;
+    let freqLabel = FREQUENCY_LABELS[frequency] || frequency;
+    if (frequency === 'custom' && quest.customDays) {
+        freqLabel = quest.customDays.map(d => DAY_NAMES[d]).join(', ');
+    }
 
-    const completedLabel = frequency === 'daily' ? 'Completed Today' :
-        frequency === 'weekly' ? 'Completed This Week' :
-        frequency === 'biweekly' ? 'Completed This Period' : 'Completed This Month';
+    const completedLabel = frequency === 'daily' || frequency === 'custom' ? 'Done' :
+        frequency === 'weekly' ? 'This Week' :
+        frequency === 'biweekly' ? 'This Period' : 'This Month';
+
+    const progressPct = quest.target > 0 ? Math.min(100, Math.round((monthlyCount / quest.target) * 100)) : 0;
     
     const card = document.createElement('div');
-    card.className = 'quest-card' + (quest.essential ? ' essential-quest' : '');
+    card.className = 'quest-card' + (quest.essential ? ' essential-quest' : '') + (completed ? ' quest-completed' : '') + (!isScheduledToday ? ' quest-not-today' : '');
     card.innerHTML = `
-        <div class="quest-header">
-            <div class="quest-title">
-                <span class="quest-icon-large">${quest.icon}</span>
-                <span>${quest.name}${quest.essential ? '<span class="essential-indicator">ESSENTIAL</span>' : ''}${freqBadge}</span>
+        <div class="quest-top-row">
+            <div class="quest-icon-wrap">${quest.icon}</div>
+            <div class="quest-info">
+                <div class="quest-name">${quest.name}</div>
+                <div class="quest-meta">
+                    <span class="quest-freq-badge">${freqLabel}</span>
+                    ${quest.essential ? '<span class="essential-indicator">ESSENTIAL</span>' : ''}
+                </div>
             </div>
             <div class="quest-actions">
-                <button class="btn-icon" data-action="edit" data-id="${quest.id}">✏️</button>
-                <button class="btn-icon" data-action="delete" data-id="${quest.id}">🗑️</button>
+                <button class="btn-icon-sm" data-action="edit" data-id="${quest.id}" title="Edit">✏️</button>
+                <button class="btn-icon-sm" data-action="delete" data-id="${quest.id}" title="Delete">🗑️</button>
             </div>
         </div>
-        <div class="quest-stats">
-            <div class="quest-stat">
-                <div class="quest-stat-value">${monthlyCount}/${quest.target}</div>
-                <div class="quest-stat-label">Progress</div>
+        <div class="quest-progress-row">
+            <div class="quest-progress-bar">
+                <div class="quest-progress-fill" style="width:${progressPct}%"></div>
             </div>
-            <div class="quest-stat">
-                <div class="quest-stat-value">${streak}</div>
-                <div class="quest-stat-label">Streak</div>
-            </div>
-            <div class="quest-stat">
-                <div class="quest-stat-value">${quest.xp} XP</div>
-                <div class="quest-stat-label">Reward</div>
-            </div>
+            <span class="quest-progress-text">${monthlyCount}/${quest.target}</span>
         </div>
-        ${!completed ? `<div class="quest-xp-preview">💰 Completing this quest: <strong>+${totalXP} XP</strong></div>` : ''}
-        <button class="check-in-btn ${completed ? 'completed' : ''}" data-quest="${quest.id}" ${completed ? 'disabled' : ''}>
-            ${completed ? '✅ ' + completedLabel : '⚡ Complete Quest'}
-        </button>
+        <div class="quest-bottom-row">
+            <div class="quest-chip">🔥 ${streak}</div>
+            <div class="quest-chip">⚡ ${quest.xp} XP</div>
+            ${!completed && isScheduledToday ? `<div class="quest-chip quest-chip-bonus">+${totalXP} XP</div>` : ''}
+        </div>
+        ${isScheduledToday ? `<button class="check-in-btn ${completed ? 'completed' : ''}" data-quest="${quest.id}" ${completed ? 'disabled' : ''}>
+            ${completed ? '✅ ' + completedLabel : '⚡ Complete'}
+        </button>` : '<div class="quest-not-scheduled">Not scheduled today</div>'}
     `;
     
-    card.querySelectorAll('.btn-icon').forEach(btn => {
+    card.querySelectorAll('.btn-icon-sm').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             const action = btn.dataset.action;
@@ -981,7 +1028,7 @@ function renderQuestCard(quest) {
     });
     
     const completeBtn = card.querySelector('.check-in-btn');
-    if (!completed) {
+    if (completeBtn && !completed) {
         completeBtn.addEventListener('click', () => completeQuest(quest.id));
     }
     
@@ -994,7 +1041,7 @@ function completeQuest(questId) {
     if (!quest) return;
     
     const frequency = quest.frequency || 'daily';
-    if (isQuestCompletedForPeriod(questId, frequency)) return;
+    if (isQuestCompletedForPeriod(questId, frequency, quest)) return;
     
     const today = new Date().toISOString().split('T')[0];
     const key = `${questId}-${today}`;
@@ -1149,7 +1196,7 @@ function setQuestModalMode(isEdit) {
 }
 
 function setupForms() {
-    // Inject frequency select into quest form
+    // Inject frequency select with custom days into quest form
     const essentialGroup = document.getElementById('questEssential')?.closest('.form-group');
     if (essentialGroup) {
         const freqGroup = document.createElement('div');
@@ -1161,9 +1208,20 @@ function setupForms() {
                 <option value="weekly">Weekly</option>
                 <option value="biweekly">Biweekly</option>
                 <option value="monthly">Monthly</option>
+                <option value="custom">Custom Days</option>
             </select>
+            <div id="customDaysSelector" class="custom-days-selector" style="display:none;margin-top:10px;">
+                <label class="form-label" style="font-size:0.85rem;margin-bottom:6px;">Select days:</label>
+                <div class="custom-days-row">
+                    ${DAY_NAMES.map((d, i) => `<label class="day-chip"><input type="checkbox" value="${i}" class="custom-day-cb">${d}</label>`).join('')}
+                </div>
+            </div>
         `;
         essentialGroup.parentNode.insertBefore(freqGroup, essentialGroup);
+
+        document.getElementById('questFrequency').addEventListener('change', (e) => {
+            document.getElementById('customDaysSelector').style.display = e.target.value === 'custom' ? 'block' : 'none';
+        });
     }
 
     const questForm = document.getElementById('questForm');
@@ -1181,6 +1239,15 @@ function setupForms() {
         const essential = document.getElementById('questEssential').checked;
         const freqSelect = document.getElementById('questFrequency');
         const frequency = freqSelect ? freqSelect.value : 'daily';
+
+        let customDays = null;
+        if (frequency === 'custom') {
+            customDays = Array.from(document.querySelectorAll('.custom-day-cb:checked')).map(cb => parseInt(cb.value));
+            if (customDays.length === 0) {
+                showNotification('⚠️ Please select at least one day');
+                return;
+            }
+        }
         
         const stats = {};
         document.querySelectorAll('.stat-checkbox-label input[type="checkbox"]:checked').forEach(cb => {
@@ -1191,6 +1258,11 @@ function setupForms() {
         
         if (Object.keys(stats).length === 0) {
             stats.strength = 1;
+        }
+
+        // Save last used category for persistence
+        if (category) {
+            localStorage.setItem('levelup_lastCategory', categorySelect);
         }
         
         if (editingQuestId) {
@@ -1206,6 +1278,7 @@ function setupForms() {
                 frequency,
                 stats
             };
+            if (customDays) quest.customDays = customDays;
             user.quests.push(quest);
             editingQuestId = null;
             saveAllUsers();
@@ -1225,6 +1298,7 @@ function setupForms() {
                 frequency,
                 stats
             };
+            if (customDays) quest.customDays = customDays;
             user.quests.push(quest);
             user.questsCreated++;
             saveAllUsers();
@@ -1249,6 +1323,19 @@ function setupForms() {
             increment.disabled = !e.target.checked;
         });
     });
+
+    // Restore last used category when opening the add quest modal
+    document.getElementById('addQuestBtn')?.addEventListener('click', () => {
+        const lastCat = localStorage.getItem('levelup_lastCategory');
+        if (lastCat) {
+            const catSelect = document.getElementById('questCategory');
+            if (catSelect) {
+                catSelect.value = lastCat;
+                const custom = document.getElementById('questCustomCategory');
+                custom.style.display = lastCat === 'custom' ? 'block' : 'none';
+            }
+        }
+    });
 }
 
 function editQuest(questId) {
@@ -1266,7 +1353,16 @@ function editQuest(questId) {
     document.getElementById('questEssential').checked = quest.essential;
     
     const freqSelect = document.getElementById('questFrequency');
-    if (freqSelect) freqSelect.value = quest.frequency || 'daily';
+    if (freqSelect) {
+        freqSelect.value = quest.frequency || 'daily';
+        const customDaysSelector = document.getElementById('customDaysSelector');
+        if (customDaysSelector) {
+            customDaysSelector.style.display = quest.frequency === 'custom' ? 'block' : 'none';
+            document.querySelectorAll('.custom-day-cb').forEach(cb => {
+                cb.checked = quest.customDays ? quest.customDays.includes(parseInt(cb.value)) : false;
+            });
+        }
+    }
     
     document.querySelectorAll('.stat-checkbox-label input[type="checkbox"]').forEach(cb => {
         const stat = cb.value;

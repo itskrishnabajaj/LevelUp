@@ -815,26 +815,58 @@ body.low-energy-mode .progress-insight {
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
-    padding: 20px;
+    padding: 16px;
 }
 
 .category-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     cursor: pointer;
-    min-height: 48px;
+    min-height: 44px;
 }
 
 .category-title {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
 }
 
+.category-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cat-move-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.cat-move-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.cat-move-btn:not(:disabled):active {
+    background: rgba(164, 99, 242, 0.2);
+}
+
 .category-toggle {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     transition: transform 0.3s ease;
+    cursor: pointer;
+    padding: 4px;
 }
 
 .category-header.collapsed .category-toggle {
@@ -843,7 +875,7 @@ body.low-energy-mode .progress-insight {
 
 .category-quests {
     display: grid;
-    gap: 15px;
+    gap: 10px;
     overflow: hidden;
     transition: max-height 0.3s ease;
 }
@@ -853,12 +885,21 @@ body.low-energy-mode .progress-insight {
     display: none;
 }
 
+/* ===== REDESIGNED QUEST CARDS ===== */
 .quest-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 16px 14px;
+    border-radius: 14px;
+    padding: 14px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quest-card.quest-completed {
+    opacity: 0.7;
+}
+
+.quest-card.quest-not-today {
+    opacity: 0.5;
 }
 
 body.low-energy-mode .quest-card:not(.essential-quest) {
@@ -874,91 +915,154 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     border: 2px solid #f59e0b;
 }
 
-.quest-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 10px;
-    gap: 10px;
-}
-
-.quest-title {
+.quest-top-row {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
+    margin-bottom: 10px;
 }
 
-.quest-title span:last-child {
+.quest-icon-wrap {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.quest-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.quest-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.quest-icon-large {
-    font-size: 1.4rem;
+.quest-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    flex-wrap: wrap;
 }
 
 .quest-actions {
     display: flex;
-    gap: 8px;
+    gap: 4px;
     flex-shrink: 0;
 }
 
-.btn-icon {
-    background: rgba(255, 255, 255, 0.05);
+.btn-icon-sm {
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--glass-border);
     color: var(--text-primary);
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    font-size: 0.8rem;
     flex-shrink: 0;
 }
 
-.btn-icon:active {
+.btn-icon-sm:active {
     background: rgba(255, 255, 255, 0.1);
     transform: scale(0.95);
 }
 
-.quest-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+.quest-progress-row {
+    display: flex;
+    align-items: center;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
-.quest-stat {
-    text-align: center;
+.quest-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
 }
 
-.quest-stat-value {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--primary);
+.quest-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--purple));
+    border-radius: 3px;
+    transition: width 0.4s ease;
 }
 
-.quest-stat-label {
-    font-size: 0.7rem;
+.quest-progress-text {
+    font-size: 0.75rem;
     color: var(--text-secondary);
-    text-transform: uppercase;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
-.quest-xp-preview {
+.quest-bottom-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.quest-chip {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.quest-chip-bonus {
+    background: rgba(164, 99, 242, 0.15);
+    color: var(--purple);
+    font-weight: 600;
+}
+
+.quest-not-scheduled {
+    text-align: center;
     font-size: 0.8rem;
     color: var(--text-secondary);
-    margin-top: 8px;
     padding: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    margin-top: 4px;
+}
+
+.essential-indicator {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.quest-freq-badge {
+    font-size: 0.6rem;
+    background: rgba(164, 99, 242, 0.12);
+    color: var(--purple);
+    padding: 2px 6px;
     border-radius: 6px;
-    border-left: 3px solid var(--accent);
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .check-in-btn {
@@ -966,14 +1070,13 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     background: linear-gradient(135deg, var(--primary), var(--purple));
     border: none;
     color: white;
-    padding: 12px;
+    padding: 10px;
     border-radius: 10px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 0.9rem;
-    margin-top: 10px;
-    min-height: 48px;
+    font-size: 0.85rem;
+    min-height: 44px;
 }
 
 .check-in-btn:active {
@@ -985,27 +1088,41 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     cursor: default;
 }
 
-.essential-indicator {
-    background: linear-gradient(135deg, #f59e0b, #fbbf24);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 20px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    margin-left: 8px;
-    display: inline-block;
-    white-space: nowrap;
+/* ===== CUSTOM DAYS SELECTOR ===== */
+.custom-days-selector {
+    margin-top: 8px;
 }
 
-.quest-freq-badge {
-    font-size: 0.65rem;
-    background: rgba(164, 99, 242, 0.15);
-    color: var(--purple);
-    padding: 2px 8px;
+.custom-days-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.day-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 10px;
     border-radius: 8px;
-    margin-left: 8px;
-    display: inline-block;
-    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.day-chip:has(input:checked) {
+    background: rgba(164, 99, 242, 0.2);
+    border-color: var(--purple);
+    color: var(--text-primary);
+}
+
+.day-chip input {
+    display: none;
 }
 
 /* ===== TIMER ===== */
@@ -2264,67 +2381,7 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     50% { box-shadow: 0 0 20px rgba(164, 99, 242, 0.4); }
 }
 
-/* ===== MOBILE BOTTOM NAV ===== */
-.bottom-nav {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(10, 14, 39, 0.95);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--glass-border);
-    z-index: 200;
-    padding: 6px 0 env(safe-area-inset-bottom, 8px);
-}
-
-.bottom-nav-items {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.bottom-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 6px 12px;
-    border: none;
-    background: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.65rem;
-    min-width: 48px;
-    min-height: 44px;
-    border-radius: 8px;
-}
-
-.bottom-nav-item .nav-icon {
-    font-size: 1.3rem;
-    line-height: 1;
-}
-
-.bottom-nav-item.active {
-    color: var(--primary);
-}
-
-.bottom-nav-item.active .nav-icon {
-    transform: scale(1.1);
-}
-
-@media (max-width: 1024px) {
-    .bottom-nav {
-        display: block;
-    }
-    
-    .main-content {
-        padding-bottom: 80px;
-    }
-}
+/* ===== MOBILE BOTTOM NAV (removed - sidebar covers all navigation) ===== */
 
 /* ===== NOTIFICATIONS ===== */
 .app-notification {
@@ -2388,11 +2445,6 @@ body.low-energy-mode .quest-card:not(.essential-quest) {
     .nav-link:hover {
         background: rgba(255, 255, 255, 0.06);
         color: var(--text-primary);
-    }
-
-    .bottom-nav-item:hover {
-        color: var(--text-primary);
-        background: rgba(255, 255, 255, 0.05);
     }
 
     .activity-option:hover {
