@@ -618,6 +618,16 @@ function setupNavigation() {
             }
         });
     });
+
+    // Bottom navigation
+    document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            switchTab(tab);
+            document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
 }
 
 function switchTab(tabName) {
@@ -626,6 +636,11 @@ function switchTab(tabName) {
     
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(tabName).classList.add('active');
+
+    // Update bottom nav
+    document.querySelectorAll('.bottom-nav-item').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === tabName);
+    });
     
     if (tabName === 'analytics') {
         setTimeout(renderCharts, 100);
