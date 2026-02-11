@@ -10,15 +10,6 @@
     // ===== HELPER FUNCTIONS =====
     
     /**
-     * Get the stat cap based on user's selected class
-     * @returns {number} The stat cap (100 for no class, 1000 for selected class)
-     */
-    function getStatCap() {
-        const user = allUsers[currentUser];
-        return user.selectedClass ? 1000 : 100;
-    }
-
-    /**
      * Draw a bar chart on the given canvas context
      * @param {CanvasRenderingContext2D} ctx - Canvas 2D context
      * @param {number} width - Canvas width
@@ -129,7 +120,7 @@
         ];
         
         const angleStep = (Math.PI * 2) / stats.length;
-        const cap = getStatCap();
+        const cap = window.getStatCap();
         
         // Draw background grid
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
@@ -342,11 +333,10 @@
         renderDailyXPBreakdownChart,
         renderStatsRadarChart,
         renderStatGrowthChart,
-        getStatCap,
         drawBarChart
     };
 
-    // Also export directly to window for backward compatibility
+    // Also export directly to window for backward compatibility (using original function names)
     window.renderCharts = renderCharts;
     window.renderWeeklyChart = renderWeeklyProgressChart;
     window.renderMonthlyChart = renderMonthlyCompletionChart;
