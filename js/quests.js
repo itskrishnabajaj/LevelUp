@@ -250,7 +250,7 @@
         
         const completeBtn = card.querySelector('.check-in-btn');
         if (completeBtn && !completed) {
-            completeBtn.addEventListener('click', () => completeQuest(quest.id));
+            completeBtn.addEventListener('click', (e) => completeQuest(quest.id, e));
         }
         
         return card;
@@ -262,7 +262,7 @@
      * Complete a quest: award XP, update stats, check achievements and perfect day
      * @param {string} questId - The quest ID
      */
-    function completeQuest(questId) {
+    function completeQuest(questId, event) {
         const user = allUsers[currentUser];
         const quest = user.quests.find(q => q.id === questId);
         if (!quest) return;
@@ -288,6 +288,23 @@
             const multiplier = bonus[stat] || 1;
             user.stats[stat] = Math.min(getStatCap(), user.stats[stat] + Math.floor(increment * multiplier));
         });
+        
+        // Trigger animations if event provided
+        if (event && event.target) {
+            const rect = event.target.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            // Show confetti burst
+            if (typeof createConfetti === 'function') {
+                createConfetti(x, y);
+            }
+            
+            // Show floating XP
+            if (typeof showXPFloat === 'function') {
+                showXPFloat(totalXP, x, y);
+            }
+        }
         
         saveAllUsers();
         renderAll();

@@ -53,7 +53,12 @@
         updateUserProfile();
         checkAchievements();
         
-        showNotification('🎉 LEVEL UP! You reached Level ' + user.level);
+        // Show level up celebration overlay
+        if (typeof showLevelUp === 'function') {
+            showLevelUp(user.level);
+        } else {
+            showNotification('🎉 LEVEL UP! You reached Level ' + user.level);
+        }
     }
     
     /**
