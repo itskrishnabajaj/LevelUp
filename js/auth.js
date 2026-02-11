@@ -11,6 +11,22 @@
      */
     function checkPinLock() {
         const storedPin = localStorage.getItem('levelup_pin');
+        const savedUsers = localStorage.getItem('allUsers');
+        let hasExistingUsers = false;
+        if (savedUsers) {
+            try {
+                const parsed = JSON.parse(savedUsers);
+                hasExistingUsers = Object.keys(parsed).length > 0;
+            } catch (e) {
+                hasExistingUsers = false;
+            }
+        }
+        
+        if (!hasExistingUsers && !storedPin) {
+            // First time user, no persistent sessions - skip PIN screen
+            return;
+        }
+        
         if (!storedPin) {
             showPinScreen('setup');
         } else {
@@ -59,6 +75,102 @@
             return true;
         }
         return false;
+    }
+
+    /**
+     * Shows change PIN screen (verifies current PIN then sets new one)
+     */
+    function changePin() {
+        const storedPin = localStorage.getItem('levelup_pin');
+        
+        if (!storedPin) {
+            // No PIN set yet, go directly to setup
+            showPinScreen('setup');
+            return;
+        }
+        
+        // Show a screen that asks for current PIN, then new PIN
+        let overlay = document.getElementById('pinLockOverlay');
+        if (overlay) overlay.remove();
+
+        overlay = document.createElement('div');
+        overlay.id = 'pinLockOverlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg-primary,#0f0f23);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;';
+
+        overlay.innerHTML = `
+            <div style="text-align:center;padding:20px;max-width:320px;width:100%;">
+                <div style="font-size:3rem;margin-bottom:16px;">🔑</div>
+                <h2 style="color:var(--text-primary,#fff);margin-bottom:8px;" id="changePinTitle">Enter Current PIN</h2>
+                <p style="color:var(--text-secondary,#94a3b8);margin-bottom:24px;font-size:0.9rem;" id="changePinDesc">
+                    Verify your current PIN to continue
+                </p>
+                <input type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+                    aria-label="Enter your current PIN"
+                    style="width:200px;text-align:center;font-size:2rem;letter-spacing:16px;padding:14px 20px;border-radius:12px;border:2px solid var(--border,#333);background:var(--bg-secondary,#1a1a2e);color:var(--text-primary,#fff);outline:none;"
+                    autocomplete="off">
+                <br>
+                <button id="pinSubmitBtn" style="margin-top:16px;padding:12px 32px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--primary,#ff6b6b),var(--purple,#a463f2));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;">
+                    Verify
+                </button>
+                <button id="pinCancelBtn" style="margin-top:8px;padding:10px 24px;border-radius:12px;border:1px solid var(--border,#333);background:transparent;color:var(--text-secondary,#94a3b8);font-size:0.9rem;cursor:pointer;display:block;margin-left:auto;margin-right:auto;">
+                    Cancel
+                </button>
+                <p id="pinError" style="color:#ef4444;margin-top:12px;font-size:0.85rem;min-height:20px;"></p>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const pinInput = document.getElementById('pinInput');
+        const pinSubmitBtn = document.getElementById('pinSubmitBtn');
+        const pinError = document.getElementById('pinError');
+        const pinCancelBtn = document.getElementById('pinCancelBtn');
+        const changePinTitle = document.getElementById('changePinTitle');
+        const changePinDesc = document.getElementById('changePinDesc');
+
+        let step = 'verify'; // 'verify' -> 'new' -> done
+        pinInput.focus();
+
+        pinCancelBtn.addEventListener('click', () => {
+            hidePinScreen();
+        });
+
+        pinSubmitBtn.addEventListener('click', async () => {
+            const pin = pinInput.value;
+
+            if (step === 'verify') {
+                const hashed = await hashPin(pin);
+                if (hashed === storedPin) {
+                    step = 'new';
+                    changePinTitle.textContent = 'Set New PIN';
+                    changePinDesc.textContent = 'Choose a new 4-digit PIN';
+                    pinSubmitBtn.textContent = 'Set PIN';
+                    pinInput.value = '';
+                    pinInput.focus();
+                    pinError.textContent = '';
+                } else {
+                    pinError.textContent = 'Incorrect PIN. Try again.';
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
+            } else if (step === 'new') {
+                if (pin && /^\d{4}$/.test(pin)) {
+                    const hashed = await hashPin(pin);
+                    localStorage.setItem('levelup_pin', hashed);
+                    hidePinScreen();
+                    if (window.showNotification) {
+                        window.showNotification('✅ PIN changed successfully!');
+                    }
+                } else {
+                    pinError.textContent = 'Please enter a valid 4-digit PIN';
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
+            }
+        });
+
+        pinInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') pinSubmitBtn.click();
+        });
     }
 
     /**
@@ -622,6 +734,7 @@
         hashPin,
         setupPin,
         verifyPin,
+        changePin,
         showPinScreen,
         hidePinScreen,
         checkAutoLogin,
@@ -648,6 +761,7 @@
     window.hashPin = hashPin;
     window.setupPin = setupPin;
     window.verifyPin = verifyPin;
+    window.changePin = changePin;
     window.showPinScreen = showPinScreen;
     window.hidePinScreen = hidePinScreen;
     window.checkAutoLogin = checkAutoLogin;
@@ -666,5 +780,6 @@
     window.showLoginBonus = showLoginBonus;
     window.closeLoginBonus = closeLoginBonus;
     window.updateLoginStreakDisplay = updateLoginStreakDisplay;
+    window.initAuthEventListeners = initAuthEventListeners;
 
 })();
