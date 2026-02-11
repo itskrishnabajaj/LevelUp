@@ -7,6 +7,10 @@
     // Initialize window.LevelUp namespace if not exists
     window.LevelUp = window.LevelUp || {};
     
+    // ===== CONSTANTS =====
+    
+    const MAX_STREAK_DAYS = 365;
+    
     // ===== LEVEL PROGRESSION =====
     
     /**
@@ -70,7 +74,7 @@
      * @returns {Object} { totalXP, baseXP }
      * 
      * Bonuses applied:
-     * - First quest of day: +50% of base XP
+     * - First quest of day: bonus equal to 50% of base XP
      * - Streak multipliers: 10%-75% based on current streak
      * - Comeback bonus: +15 XP if yesterday was missed and this is first quest
      */
@@ -128,7 +132,7 @@
         let streak = 0;
         let date = new Date();
         
-        while (streak < 365) {
+        while (streak < MAX_STREAK_DAYS) {
             const key = date.toISOString().split('T')[0];
             const count = Object.keys(user.completions).filter(k => k.includes(key)).length;
             
@@ -137,7 +141,6 @@
                 date.setDate(date.getDate() - 1);
             } else {
                 const today = new Date().toISOString().split('T')[0];
-                if (key === today && streak > 0) break;
                 if (key === today) break;
                 break;
             }
@@ -156,7 +159,7 @@
         let streak = 0;
         let date = new Date();
         
-        while (streak < 365) {
+        while (streak < MAX_STREAK_DAYS) {
             const key = `${questId}-${date.toISOString().split('T')[0]}`;
             if (user.completions[key]) {
                 streak++;
