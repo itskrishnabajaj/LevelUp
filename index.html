@@ -217,6 +217,9 @@
                     <div class="quote-author" id="quoteAuthor"></div>
                 </div>
                 
+                <!-- Routines Widget -->
+                <div id="routinesWidgetContainer"></div>
+                
                 <div class="stats-overview" id="statsOverview"></div>
                 
                 <div class="chart-container">
@@ -264,12 +267,19 @@
                         <h3 class="section-title">Select Training Activity</h3>
                         <div class="activity-grid" id="activityGrid"></div>
                     </div>
+                    
+                    <!-- Pomodoro Controls -->
+                    <div id="pomodoroControlsContainer"></div>
                 </div>
             </div>
 
             <!-- Analytics Tab -->
             <div class="tab-content" id="analytics">
                 <h1>Performance Analytics 📊</h1>
+                
+                <!-- Habit Heatmap -->
+                <div id="habitHeatmapContainer" style="margin-bottom: 32px;"></div>
+                
                 <div class="chart-container">
                     <h2 class="section-title">Monthly Completion Rate</h2>
                     <canvas id="monthlyChart" class="chart-canvas"></canvas>
@@ -338,6 +348,11 @@
             <!-- Info Tab -->
             <div class="tab-content" id="info">
                 <h1>How It Works ℹ️</h1>
+                
+                <!-- Goal Milestones Section -->
+                <div class="info-section">
+                    <div id="milestonesContainer"></div>
+                </div>
                 
                 <!-- Personal Records Section -->
                 <div class="info-section">

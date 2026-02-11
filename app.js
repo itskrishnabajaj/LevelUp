@@ -146,9 +146,25 @@ function renderAll() {
         setTimeout(renderCharts, 100);
     }
     
-    // Render personal records
+    // Render growth features
     if (typeof renderPersonalRecords === 'function') {
         renderPersonalRecords();
+    }
+    
+    if (typeof renderHabitHeatmap === 'function') {
+        renderHabitHeatmap();
+    }
+    
+    if (typeof renderPomodoroControls === 'function') {
+        renderPomodoroControls();
+    }
+    
+    if (typeof renderRoutinesWidget === 'function') {
+        renderRoutinesWidget();
+    }
+    
+    if (typeof renderMilestones === 'function') {
+        renderMilestones();
     }
     
     // Check weekly review
