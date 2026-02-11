@@ -7,36 +7,6 @@
     // Initialize window.LevelUp namespace if not exists
     window.LevelUp = window.LevelUp || {};
 
-    // ===== HELPER FUNCTIONS =====
-    function getTodayQuestCount() {
-        const user = allUsers[currentUser];
-        const today = new Date().toISOString().split('T')[0];
-        return Object.keys(user.completions).filter(k => k.includes(today)).length;
-    }
-
-    function calculateCurrentStreak() {
-        const user = allUsers[currentUser];
-        let streak = 0;
-        let date = new Date();
-        
-        while (streak < 365) {
-            const key = date.toISOString().split('T')[0];
-            const count = Object.keys(user.completions).filter(k => k.includes(key)).length;
-            
-            if (count > 0) {
-                streak++;
-                date.setDate(date.getDate() - 1);
-            } else {
-                const today = new Date().toISOString().split('T')[0];
-                if (key === today && streak > 0) break;
-                if (key === today) break;
-                break;
-            }
-        }
-        
-        return streak;
-    }
-
     // ===== ACHIEVEMENT CHECKING =====
     function checkAchievements() {
         const user = allUsers[currentUser];
