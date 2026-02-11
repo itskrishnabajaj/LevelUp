@@ -497,7 +497,7 @@
     window.updateStats = updateStats;
     window.updateWelcomeMessage = updateWelcomeMessage;
     window.renderConsistencyStats = renderConsistencyStats;
-    window.updateConsistencyStats = renderConsistencyStats; // Alias for backward compatibility
+    window.updateConsistencyStats = renderConsistencyStats; // Legacy alias - function was renamed from updateConsistencyStats to renderConsistencyStats
     window.renderBehaviorFeedback = renderBehaviorFeedback;
     window.analyzePatterns = analyzePatterns;
     window.dismissFeedback = dismissFeedback;
