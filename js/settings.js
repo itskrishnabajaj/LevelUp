@@ -147,7 +147,7 @@
         const user = allUsers[currentUser];
         if (user.selectedClass) return;
         
-        const allAt100 = Object.values(user.stats).every(v => v >= 100);
+        const allAt100 = user.stats ? Object.values(user.stats).every(v => v >= 100) : false;
         if (allAt100) {
             showClassChangeModal();
         }

@@ -271,7 +271,7 @@
         
         list.innerHTML = '';
         
-        const users = Object.values(window.allUsers);
+        const users = allUsers ? Object.values(allUsers) : [];
         if (users.length === 0) {
             list.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No accounts yet. Create one above!</p>';
             return;

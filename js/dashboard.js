@@ -275,7 +275,7 @@
         const weeklyTotal = last7.reduce((a, b) => a + b, 0);
         const activeDays = last7.filter(c => c > 0).length;
         
-        const maxStat = Math.max(...Object.values(user.stats));
+        const maxStat = user.stats ? Math.max(...Object.values(user.stats)) : 0;
         const strongest = Object.keys(user.stats).find(k => user.stats[k] === maxStat);
         const statNames = {
             strength: 'Strength',

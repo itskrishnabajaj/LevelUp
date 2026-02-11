@@ -61,8 +61,8 @@
             custom_quest: user.questsCreated >= 1,
             custom_quest_10: user.questsCreated >= 10,
             low_energy_5: user.lowEnergyCount >= 5,
-            all_stats_50: Object.values(user.stats).every(v => v >= 50),
-            all_stats_100: Object.values(user.stats).every(v => v >= 100)
+            all_stats_50: user.stats ? Object.values(user.stats).every(v => v >= 50) : false,
+            all_stats_100: user.stats ? Object.values(user.stats).every(v => v >= 100) : false
         };
         
         user.achievements.forEach(achievement => {
