@@ -1,4 +1,15 @@
 // Level Up - Settings System
+// 
+// Dependencies:
+// - state.js: allUsers, currentUser
+// - config.js: CLASS_OPTIONS, DEFAULT_QUESTS, ACHIEVEMENTS_DATA
+// - auth.js: saveAllUsers
+// - dashboard.js: updateUserProfile, updateStats, updateWelcomeMessage
+// - identity.js: updateIdentityWidget
+// - achievements.js: checkAchievements
+// - quests.js: renderQuests
+// - utils.js: openModal, closeModal, showNotification
+// - app.js: renderAll
 (function() {
     'use strict';
 
