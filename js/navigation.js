@@ -39,7 +39,7 @@
         }
         
         // Close sidebar on mobile after tab switch
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 1024) {
             closeSidebar();
         }
     }
@@ -48,7 +48,8 @@
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         if (sidebar) {
-            sidebar.classList.toggle('active');
+            sidebar.classList.toggle('mobile-visible');
+            document.body.classList.toggle('sidebar-open');
         }
     }
 
@@ -56,7 +57,8 @@
     function closeSidebar() {
         const sidebar = document.getElementById('sidebar');
         if (sidebar) {
-            sidebar.classList.remove('active');
+            sidebar.classList.remove('mobile-visible');
+            document.body.classList.remove('sidebar-open');
         }
     }
 
@@ -85,7 +87,7 @@
             const sidebar = document.getElementById('sidebar');
             const menuToggle = document.getElementById('menuToggle');
             if (sidebar && !sidebar.contains(e.target) && e.target !== menuToggle) {
-                if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+                if (window.innerWidth <= 1024 && sidebar.classList.contains('mobile-visible')) {
                     closeSidebar();
                 }
             }
