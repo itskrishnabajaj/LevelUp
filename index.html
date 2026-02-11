@@ -2,18 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <meta name="color-scheme" content="dark">
-    <title>Level Up - RPG Habit Tracker</title>
+    <title>Level Up - RPG Habit Tracker v2.0</title>
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#050813">
+    <meta name="theme-color" content="#0A0A0F">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Level Up">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     
     <link rel="stylesheet" href="style.css">
 </head>
@@ -618,21 +630,23 @@
         </div>
     </div>
 
-    <!-- Core modules -->
+        <!-- Core modules -->
     <script src="js/state.js"></script>
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/firebase.js"></script>
     <script src="js/xp.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/journal.js"></script>
-    <script src="js/timer.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/quests.js"></script>
+    <script src="js/timer.js"></script>
+    <script src="js/journal.js"></script>
     <script src="js/achievements.js"></script>
     <script src="js/analytics.js"></script>
+    <script src="js/dashboard.js"></script>
     <script src="js/identity.js"></script>
     <script src="js/settings.js"></script>
-    <script src="js/firebase.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/ui.js"></script>
     
     <!-- Main app -->
     <script src="app.js"></script>
