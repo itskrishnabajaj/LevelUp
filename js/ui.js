@@ -17,12 +17,17 @@
 
     // Setup avatar selectors
     function setupAvatarSelectors() {
-        const avatarOptions = document.querySelectorAll('.avatar-option');
-        avatarOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                avatarOptions.forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedAvatar = option.dataset.avatar;
+        const selectors = document.querySelectorAll('.avatar-selector');
+        selectors.forEach(selector => {
+            const options = selector.querySelectorAll('.avatar-option');
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    options.forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    if (selector.id === 'avatarSelector') {
+                        selectedAvatar = option.dataset.avatar;
+                    }
+                });
             });
         });
     }

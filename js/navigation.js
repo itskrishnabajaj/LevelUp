@@ -15,7 +15,7 @@
         tabs.forEach(tab => tab.classList.remove('active'));
         
         // Show selected tab
-        const selectedTab = document.getElementById(`${tabName}Tab`);
+        const selectedTab = document.getElementById(tabName);
         if (selectedTab) {
             selectedTab.classList.add('active');
         }

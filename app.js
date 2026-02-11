@@ -245,37 +245,7 @@ function setupForms() {
         });
     }
     
-    // Signup form
-    const signupForm = document.getElementById('signupForm');
-    if (signupForm) {
-        signupForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (typeof handleSignup === 'function') {
-                handleSignup();
-            }
-        });
-    }
-    
-    // Login form
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (typeof handleLogin === 'function') {
-                handleLogin();
-            }
-        });
-    }
-    
-    // Logout button
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            if (typeof logout === 'function') {
-                logout();
-            }
-        });
-    }
+    // Signup, Login, and Logout handlers are set up in initAuthEventListeners()
     
     // Timer buttons
     const startBtn = document.getElementById('startBtn');
@@ -351,6 +321,16 @@ function setupForms() {
         deleteProfileBtn.addEventListener('click', () => {
             if (typeof deleteProfile === 'function') {
                 deleteProfile();
+            }
+        });
+    }
+    
+    // Change PIN button
+    const changePinBtn = document.getElementById('changePinBtn');
+    if (changePinBtn) {
+        changePinBtn.addEventListener('click', () => {
+            if (typeof changePin === 'function') {
+                changePin();
             }
         });
     }

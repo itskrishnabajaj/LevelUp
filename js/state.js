@@ -1,12 +1,12 @@
 // Level Up - State Management
-// Global state variables
+// Global state variables (use var so they are accessible as window properties)
 
-let allUsers = {};
-let currentUser = null;
-let selectedAvatar = '🦸';
-let selectedMood = null;
-let selectedActivity = null;
-let selectedActivityName = '';
-let identityReminderTimeout = null;
-let achievementFilter = 'all';
-let editingQuestId = null;
+var allUsers = {};
+var currentUser = null;
+var selectedAvatar = '🦸';
+var selectedMood = null;
+var selectedActivity = null;
+var selectedActivityName = '';
+var identityReminderTimeout = null;
+var achievementFilter = 'all';
+var editingQuestId = null;
