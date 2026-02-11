@@ -12,7 +12,15 @@
     function checkPinLock() {
         const storedPin = localStorage.getItem('levelup_pin');
         const savedUsers = localStorage.getItem('allUsers');
-        const hasExistingUsers = savedUsers && savedUsers !== '{}';
+        let hasExistingUsers = false;
+        if (savedUsers) {
+            try {
+                const parsed = JSON.parse(savedUsers);
+                hasExistingUsers = Object.keys(parsed).length > 0;
+            } catch (e) {
+                hasExistingUsers = false;
+            }
+        }
         
         if (!hasExistingUsers && !storedPin) {
             // First time user, no persistent sessions - skip PIN screen
