@@ -1,11 +1,50 @@
 // ===== TIMER AND ACTIVITY TRACKING =====
 // Timer system for activity tracking with XP and stat rewards
+//
+// Dependencies:
+// - state.js: allUsers, currentUser, selectedActivity, selectedActivityName
+// - config.js: ACTIVITY_TYPES, CLASS_OPTIONS
+// - utils.js: pad, showNotification
+// - xp.js: updatePlayerLevel, getStatCap
+// - app.js: updateStats, checkAchievements, saveAllUsers
 
 (function() {
     'use strict';
     
     // Initialize window.LevelUp namespace if not exists
     window.LevelUp = window.LevelUp || {};
+    
+    // ===== PRIVATE HELPERS =====
+    
+    /**
+     * Creates and returns a timer interval for the selected activity
+     * Awards XP and stats at configured intervals
+     * @private
+     */
+    function createTimerInterval() {
+        const user = allUsers[currentUser];
+        const activityData = ACTIVITY_TYPES.find(a => a.id === selectedActivity);
+        if (!activityData) return null;
+        
+        return setInterval(() => {
+            user.timerState.elapsed++;
+            updateTimerDisplay();
+            
+            if (user.timerState.elapsed % activityData.interval === 0) {
+                const xpGain = Math.floor(activityData.xpPerMin * (activityData.interval / 60));
+                user.xp += xpGain;
+                user.totalXPEarned += xpGain;
+                
+                const bonus = user.selectedClass ? CLASS_OPTIONS.find(c => c.id === user.selectedClass)?.bonuses || {} : {};
+                const multiplier = bonus[activityData.stat] || 1;
+                user.stats[activityData.stat] = Math.min(getStatCap(), user.stats[activityData.stat] + Math.floor(1 * multiplier));
+                
+                updatePlayerLevel();
+                updateStats();
+                saveAllUsers();
+            }
+        }, 1000);
+    }
     
     // ===== ACTIVITY GRID =====
     
@@ -76,29 +115,9 @@
         document.getElementById('pauseBtn').style.display = 'inline-block';
         document.getElementById('stopBtn').style.display = 'inline-block';
         
-        const activityData = ACTIVITY_TYPES.find(a => a.id === selectedActivity);
-        if (!activityData) return;
-        
         saveAllUsers();
         
-        user.timerState.interval = setInterval(() => {
-            user.timerState.elapsed++;
-            updateTimerDisplay();
-            
-            if (user.timerState.elapsed % activityData.interval === 0) {
-                const xpGain = Math.floor(activityData.xpPerMin * (activityData.interval / 60));
-                user.xp += xpGain;
-                user.totalXPEarned += xpGain;
-                
-                const bonus = user.selectedClass ? CLASS_OPTIONS.find(c => c.id === user.selectedClass)?.bonuses || {} : {};
-                const multiplier = bonus[activityData.stat] || 1;
-                user.stats[activityData.stat] = Math.min(getStatCap(), user.stats[activityData.stat] + Math.floor(1 * multiplier));
-                
-                updatePlayerLevel();
-                updateStats();
-                saveAllUsers();
-            }
-        }, 1000);
+        user.timerState.interval = createTimerInterval();
     }
     
     /**
@@ -196,26 +215,7 @@
             
             showNotification(`⏱️ Timer resumed from ${timeStr}`);
             
-            const activityData = ACTIVITY_TYPES.find(a => a.id === selectedActivity);
-            if (!activityData) return;
-            
-            user.timerState.interval = setInterval(() => {
-                user.timerState.elapsed++;
-                updateTimerDisplay();
-                
-                if (user.timerState.elapsed % activityData.interval === 0) {
-                    const xpGain = Math.floor(activityData.xpPerMin * (activityData.interval / 60));
-                    user.xp += xpGain;
-                    user.totalXPEarned += xpGain;
-                    
-                    const bonus = user.selectedClass ? CLASS_OPTIONS.find(c => c.id === user.selectedClass)?.bonuses || {} : {};
-                    const multiplier = bonus[activityData.stat] || 1;
-                    user.stats[activityData.stat] = Math.min(getStatCap(), user.stats[activityData.stat] + Math.floor(1 * multiplier));
-                    
-                    updatePlayerLevel();
-                    updateStats();
-                }
-            }, 1000);
+            user.timerState.interval = createTimerInterval();
             
             document.getElementById('startBtn').style.display = 'none';
             document.getElementById('pauseBtn').style.display = 'inline-block';
