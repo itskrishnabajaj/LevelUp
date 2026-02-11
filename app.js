@@ -145,6 +145,16 @@ function renderAll() {
     if (typeof renderCharts === 'function') {
         setTimeout(renderCharts, 100);
     }
+    
+    // Render personal records
+    if (typeof renderPersonalRecords === 'function') {
+        renderPersonalRecords();
+    }
+    
+    // Check weekly review
+    if (typeof checkWeeklyReview === 'function') {
+        setTimeout(checkWeeklyReview, 2000); // Delay to avoid overlap with login bonus
+    }
 }
 
 // ===== SETUP FORMS =====
